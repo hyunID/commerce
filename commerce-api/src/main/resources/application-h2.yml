@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:test
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+#mybatis:
+#  mapper-locations: classpath:mapper/**/*.xml
+#  type-aliases-package: com.project.commerce.user.entity
+#  configuration:
+#    map-underscore-to-camel-case: true

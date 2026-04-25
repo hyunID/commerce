@@ -1,0 +1,27 @@
+server:
+  port: 8081
+
+spring:
+  profiles:
+    active: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.project.commerce.user.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+
+
+
+logging:
+  level:
+    org.mybatis: debug
+    org.hibernate.SQL: debug

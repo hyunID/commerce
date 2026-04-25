@@ -1,24 +1,54 @@
-import { login } from "./api/auth";
+import { useEffect, useState } from "react";
+import { getMe } from "./api/auth";
+import MainPage from "./pages/MainPage";
+import LoginPage from "./pages/LoginPage";
 
 function App() {
-  const handleLogin = async () => {
-    try {
-      const res = await login("test@test.com");
-      console.log("로그인 결과:", res);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    const [user, setUser] = useState(null);
 
-  return (
-      <div>
-        <h1>Commerce Web</h1>
+    // 앱 시작 시 로그인 유지 체크
+    useEffect(() => {
+        const init = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
 
-        <button onClick={handleLogin}>
-          로그인 테스트
-        </button>
-      </div>
-  );
+            try {
+                const res = await getMe();
+                setUser(res.data); // { email, role }
+
+            }  catch {
+                console.error("토큰 만료 또는 오류");
+                localStorage.removeItem("token");
+            }
+        };
+
+        init();
+    }, []);
+
+    // 로그아웃
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        setUser(null);
+    };
+
+    // 로그인 성공 시
+    const handleLoginSuccess = async () => {
+        const res = await getMe();
+        setUser(res.data);
+    };
+
+    return (
+        <>
+            {user ? (
+                <MainPage
+                    user={user}
+                    onLogout={handleLogout}
+                />
+            ) : (
+                <LoginPage onLoginSuccess={handleLoginSuccess} />
+            )}
+        </>
+    );
 }
 
 export default App;

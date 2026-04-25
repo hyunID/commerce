@@ -84,7 +84,7 @@ public class UserService {
 
         System.out.println("유저 찾음: " + user.getEmail());
 
-        String token = JwtUtil.createToken(user.getEmail());
+        String token = JwtUtil.createToken(user.getEmail(), user.getRole());
         System.out.println("토큰 생성 완료");
 
         return token;

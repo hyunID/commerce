@@ -57,10 +57,11 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String email = JwtUtil.getEmail(token);
+        String role = JwtUtil.getRole(token);
 
         // request에 사용자 정보 저장
         request.setAttribute("userEmail", email);
-
+        request.setAttribute("userRole", role);
 
         // 통과
         filterChain.doFilter(request, response);

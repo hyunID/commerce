@@ -25,3 +25,7 @@ logging:
   level:
     org.mybatis: debug
     org.hibernate.SQL: debug
+
+
+file:
+  upload-dir: D:/dev/product-images/

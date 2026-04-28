@@ -17,48 +17,63 @@ function SignupModal({ onClose }) {
             await signup(form);
             alert("회원가입 성공!");
             onClose();
-        } catch (err) {
+        } catch {
             alert("회원가입 실패");
         }
     };
 
     return (
-        <div style={overlay}>
-            <div style={modal}>
-                <h2>회원가입</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-                <input name="email" placeholder="이메일" onChange={handleChange} />
-                <input name="password" type="password" placeholder="비밀번호" onChange={handleChange} />
-                <input name="name" placeholder="이름" onChange={handleChange} />
+            <div className="bg-white w-96 p-8 rounded-2xl shadow-xl">
 
-                <button style={primaryBtn} onClick={handleSignup}>가입하기</button>
-                <button style={secondaryBtn} onClick={onClose}>닫기</button>
+                <h2 className="text-xl font-bold mb-6 text-center">
+                    회원가입
+                </h2>
+
+                {/* 🔥 핵심: flex-col + gap + w-full */}
+                <div className="flex flex-col gap-4">
+
+                    <input
+                        name="email"
+                        placeholder="이메일"
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded-lg"
+                    />
+
+                    <input
+                        name="password"
+                        type="password"
+                        placeholder="비밀번호"
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded-lg"
+                    />
+
+                    <input
+                        name="name"
+                        placeholder="이름"
+                        onChange={handleChange}
+                        className="w-full border p-2 rounded-lg"
+                    />
+
+                    <button
+                        onClick={handleSignup}
+                        className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+                    >
+                        가입하기
+                    </button>
+
+                    <button
+                        onClick={onClose}
+                        className="w-full bg-gray-200 py-2 rounded-lg hover:bg-gray-300"
+                    >
+                        닫기
+                    </button>
+
+                </div>
             </div>
         </div>
     );
 }
-
-const overlay = {
-    position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-    display: "flex", justifyContent: "center", alignItems: "center"
-};
-
-const modal = {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    width: "320px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-};
-
-const primaryBtn = {
-    background: "#4f46e5", color: "#fff", padding: "10px", border: "none", borderRadius: "6px"
-};
-
-const secondaryBtn = {
-    marginTop: "5px", padding: "8px"
-};
 
 export default SignupModal;

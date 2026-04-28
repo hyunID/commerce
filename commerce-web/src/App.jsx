@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import { getMe } from "./api/auth";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
+import AdminPage from "./pages/AdminPage";
 
 function App() {
     const [user, setUser] = useState(null);
 
-    // 앱 시작 시 로그인 유지 체크
     useEffect(() => {
         const init = async () => {
             const token = localStorage.getItem("token");
@@ -14,10 +15,8 @@ function App() {
 
             try {
                 const res = await getMe();
-                setUser(res.data); // { email, role }
-
-            }  catch {
-                console.error("토큰 만료 또는 오류");
+                setUser(res.data);
+            } catch {
                 localStorage.removeItem("token");
             }
         };
@@ -25,29 +24,34 @@ function App() {
         init();
     }, []);
 
-    // 로그아웃
     const handleLogout = () => {
         localStorage.removeItem("token");
         setUser(null);
     };
 
-    // 로그인 성공 시
     const handleLoginSuccess = async () => {
         const res = await getMe();
         setUser(res.data);
     };
 
     return (
-        <>
-            {user ? (
-                <MainPage
-                    user={user}
-                    onLogout={handleLogout}
-                />
-            ) : (
-                <LoginPage onLoginSuccess={handleLoginSuccess} />
-            )}
-        </>
+        <Routes>
+            <Route
+                path="/"
+                element={
+                    user ? (
+                        <MainPage user={user} onLogout={handleLogout} />
+                    ) : (
+                        <LoginPage onLoginSuccess={handleLoginSuccess} />
+                    )
+                }
+            />
+
+            <Route
+                path="/admin"
+                element={<AdminPage user={user} />}
+            />
+        </Routes>
     );
 }
 

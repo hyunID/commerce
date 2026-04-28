@@ -12,70 +12,56 @@ function LoginPage({ onLoginSuccess }) {
     const handleLogin = async () => {
         try {
             const res = await login(email, password);
-
             localStorage.setItem("token", res.data.token);
             onLoginSuccess();
-        } catch (err) {
+        } catch {
             setErrorMsg("등록되지 않은 이메일 입니다.");
         }
     };
 
     return (
-        <div style={container}>
-            <div style={card}>
-                <h1>🛒 Commerce</h1>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="bg-white w-80 p-8 rounded-2xl shadow-lg">
 
-                <input placeholder="이메일" onChange={(e) => setEmail(e.target.value)} />
-                <input type="password" placeholder="비밀번호" onChange={(e) => setPassword(e.target.value)} />
+                <h1 className="text-2xl font-bold text-center mb-6">
+                    🛍️ Commerce
+                </h1>
 
-                <button style={primaryBtn} onClick={handleLogin}>로그인</button>
+                <input
+                    type="email"
+                    placeholder="이메일"
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full border p-2 rounded mb-3"
+                />
 
-                <button style={linkBtn} onClick={() => setShowSignup(true)}>
+                <input
+                    type="password"
+                    placeholder="비밀번호"
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full border p-2 rounded mb-4"
+                />
+
+                <button
+                    onClick={handleLogin}
+                    className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
+                >
+                    로그인
+                </button>
+
+                <button
+                    onClick={() => setShowSignup(true)}
+                    className="w-full mt-3 text-indigo-600"
+                >
                     회원가입
                 </button>
             </div>
 
             {showSignup && <SignupModal onClose={() => setShowSignup(false)} />}
-
             {errorMsg && (
                 <AlertModal message={errorMsg} onClose={() => setErrorMsg("")} />
             )}
         </div>
     );
 }
-
-const container = {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f3f4f6"
-};
-
-const card = {
-    background: "#fff",
-    padding: "40px",
-    borderRadius: "12px",
-    width: "320px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
-};
-
-const primaryBtn = {
-    background: "#4f46e5",
-    color: "#fff",
-    padding: "10px",
-    border: "none",
-    borderRadius: "6px"
-};
-
-const linkBtn = {
-    background: "none",
-    border: "none",
-    color: "#4f46e5",
-    cursor: "pointer"
-};
 
 export default LoginPage;

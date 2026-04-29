@@ -12,37 +12,30 @@ import java.io.IOException;
 
 public class JwtFilter extends OncePerRequestFilter {
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("필터 시작 " );
-        // CORS preflight 먼저 통과
-        System.out.println(request.getMethod() );
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String header = request.getHeader("Authorization");
         String path = request.getRequestURI();
-        System.out.println("필터 시작 헤더 " + header );
-        System.out.println("필터 시작 패스 " + path );
+        String method = request.getMethod();
 
-        if (path.startsWith("/users/login")
-                || path.equals("/login")
-                || path.equals("/users")
-                || path.equals("/products")
-                || path.startsWith("/h2-console")) {
-
+        //  preflight 통과
+        if ("OPTIONS".equalsIgnoreCase(method)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        System.out.println("TOKEN MISSING" );
+        // 공개 API (토큰 없이 허용)
+        if (isPublicPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        //  토큰 검사
+        String header = request.getHeader("Authorization");
+
         if (!StringUtils.hasText(header) || !header.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("TOKEN MISSING");
@@ -50,21 +43,29 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = header.substring(7);
-        System.out.println(token );
+
         if (!JwtUtil.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("INVALID TOKEN");
             return;
         }
 
+        //  사용자 정보 세팅
         String email = JwtUtil.getEmail(token);
         String role = JwtUtil.getRole(token);
 
-        // request에 사용자 정보 저장
         request.setAttribute("userEmail", email);
         request.setAttribute("userRole", role);
 
         // 통과
         filterChain.doFilter(request, response);
+    }
+
+    //  공개 경로만 따로 관리
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/users/login")
+                || path.equals("/users")
+                || path.startsWith("/images/")
+                || path.startsWith("/h2-console");
     }
 }

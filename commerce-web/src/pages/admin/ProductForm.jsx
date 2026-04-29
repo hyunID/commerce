@@ -29,7 +29,10 @@ function ProductForm({ onSuccess }) {
 
         alert("등록 완료");
 
-        // 🔥 1. 부모 리스트 새로고침
+
+
+        // 🔥 부모 리스트 새로고침
+
         onSuccess?.();
 
         // 🔥 2. 폼 초기화

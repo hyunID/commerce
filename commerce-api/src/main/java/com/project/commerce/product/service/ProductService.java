@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -19,6 +20,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @Transactional
     public void create(ProductRequestDTO dto, MultipartFile image) {
 
         String imageUrl = saveImage(image); // 임시
@@ -28,7 +30,7 @@ public class ProductService {
         p.setPrice(dto.getPrice());
         p.setDescription(dto.getDescription());
         p.setImageUrl(imageUrl);
-
+        System.out.println(" create  ="+ p);
         productRepository.save(p);
     }
 
@@ -36,16 +38,35 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public void update(Long id, ProductRequestDTO dto) {
+    @Transactional
+    public void update(Long id, ProductRequestDTO dto, MultipartFile image) {
         Product p = productRepository.findById(id)
                 .orElseThrow();
-
+        System.out.println(" update id ="+ id);
         p.setName(dto.getName());
         p.setPrice(dto.getPrice());
         p.setDescription(dto.getDescription());
+
+        // 이미지 수정 처리
+        if (image != null && !image.isEmpty()) {
+
+            // 기존 파일 삭제
+            if (p.getImageUrl() != null) {
+                File oldFile = new File(uploadDir + p.getImageUrl());
+                if (oldFile.exists()) {
+                    oldFile.delete();
+                }
+            }
+
+            // 새 이미지 저장
+            String newImage = saveImage(image);
+            p.setImageUrl(newImage);
+        }
     }
 
+    @Transactional
     public void delete(Long id) {
+        System.out.println(" delete id ="+ id);
         productRepository.deleteById(id);
     }
 
@@ -63,8 +84,8 @@ public class ProductService {
             throw new RuntimeException("이미지 저장 실패", e);
         }
 
-        // 🔥 풀경로 반환
-        return uploadDir + fileName;
+
+        return fileName;
     }
 
 }

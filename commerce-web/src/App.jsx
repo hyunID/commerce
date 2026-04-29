@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 import { getMe } from "./api/auth";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
-import AdminPage from "./pages/AdminPage";
 
 function App() {
     const [user, setUser] = useState(null);
@@ -47,10 +46,13 @@ function App() {
                 }
             />
 
+
+            {/*
             <Route
                 path="/admin"
                 element={<AdminPage user={user} />}
             />
+            */}
         </Routes>
     );
 }

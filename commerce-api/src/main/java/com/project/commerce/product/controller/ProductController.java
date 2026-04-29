@@ -31,9 +31,10 @@ public class ProductController {
     @PutMapping("/{id}")
     public ApiResponse<?> update(
             @PathVariable Long id,
-            @RequestBody ProductRequestDTO dto
+            @RequestPart("data") ProductRequestDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        productService.update(id, dto);
+        productService.update(id, dto, image);
         return ApiResponse.success(null);
     }
 

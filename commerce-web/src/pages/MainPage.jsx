@@ -1,8 +1,25 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "../api/client";
+import AdminModal from "../components/AdminModal";
 
 function MainPage({ user, onLogout }) {
+    const [showAdmin, setShowAdmin] = useState(false);
 
-    const navigate = useNavigate();
+    // 🔥 상품 상태 (여기가 핵심)
+    const [products, setProducts] = useState([]);
+
+    const fetchProducts = async () => {
+        try {
+            const res = await api.get("/products");
+            setProducts(res.data.data || []);
+        } catch (err) {
+            console.error("상품 조회 실패", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -12,42 +29,48 @@ function MainPage({ user, onLogout }) {
                 <h1 className="text-xl font-bold">🛍️ Commerce</h1>
 
                 <div className="flex items-center gap-3">
-                    <span className="text-sm">{user.email}</span>
+                    <span>{user.email}</span>
 
-                    {/* 🔥 관리자만 버튼 노출 → 페이지 이동 */}
                     {user.role === "ADMIN" && (
-                        <button
-                            onClick={() => navigate("/admin")}
-                            className="bg-yellow-400 text-black px-3 py-1 rounded hover:bg-yellow-300"
-                        >
-                            관리자 페이지
+                        <button onClick={() => setShowAdmin(true)}>
+                            관리자 메뉴
                         </button>
                     )}
 
-                    <button
-                        onClick={onLogout}
-                        className="bg-red-500 px-3 py-1 rounded hover:bg-red-400"
-                    >
-                        로그아웃
-                    </button>
+                    <button onClick={onLogout}>로그아웃</button>
                 </div>
             </div>
 
-            {/* 상품 리스트 */}
+            {/* 🔥 실제 상품 리스트 */}
             <div className="p-6 grid grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((item) => (
-                    <div key={item} className="bg-white p-4 rounded-xl shadow">
-                        <div className="h-32 bg-gray-200 mb-3 rounded"></div>
-                        <h2 className="font-bold">상품 {item}</h2>
-                        <p className="text-sm text-gray-500">₩10,000</p>
+                {products.map((p) => (
+                    <div key={p.id} className="bg-white p-4 rounded shadow">
+                        <div className="h-32 bg-gray-200 mb-2 overflow-hidden">
+                            {p.imageUrl ? (
+                                <img
+                                    src={`http://localhost:8081/images/${p.imageUrl}`}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-400">
+                                    No Image
+                                </div>
+                            )}
+                        </div>
 
-                        <button className="mt-2 w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">
-                            장바구니
-                        </button>
+                        <h2>{p.name}</h2>
+                        <p>₩{p.price}</p>
                     </div>
                 ))}
             </div>
 
+            {/* 🔥 AdminModal에 fetch 전달 */}
+            {showAdmin && (
+                <AdminModal
+                    onClose={() => setShowAdmin(false)}
+                    onProductChange={fetchProducts}
+                />
+            )}
         </div>
     );
 }

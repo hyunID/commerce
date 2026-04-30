@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { addToCart } from "../api/cart";
-import { createOrder } from "../api/order";
 import AdminModal from "../components/AdminModal";
 import CartModal from "../components/CartModal";
 import OrderModal from "../components/OrderModal";
+import ProductDetailModal from "../components/ProductDetailModal";
 
 function MainPage({ user, onLogout }) {
 
@@ -12,26 +12,16 @@ function MainPage({ user, onLogout }) {
     const [showCart, setShowCart] = useState(false);
     const [showOrder, setShowOrder] = useState(false);
 
-    const [products, setProducts] = useState([]);
-    const [quantities, setQuantities] = useState({});
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
-    // ✅ 상품 + 수량 초기화 같이 처리 (핵심)
+    const [products, setProducts] = useState([]);
+
     const fetchProducts = async () => {
         try {
             const res = await api.get("/products");
-            const data = res.data.data || [];
-
-            setProducts(data);
-
-            // 🔥 여기서 초기화 (useEffect 제거)
-            const initQty = {};
-            data.forEach(p => {
-                initQty[p.id] = 1;
-            });
-            setQuantities(initQty);
-
+            setProducts(res.data.data || []);
         } catch (err) {
-            console.error("상품 조회 실패", err);
+            console.error(err);
         }
     };
 
@@ -39,56 +29,18 @@ function MainPage({ user, onLogout }) {
         fetchProducts();
     }, []);
 
-    // 수량 변경
-    const changeQty = (id, delta) => {
-        setQuantities(prev => ({
-            ...prev,
-            [id]: Math.max(1, (prev[id] || 1) + delta)
-        }));
-    };
-
-    const resetQty = (productId) => {
-        setQuantities(prev => ({
-            ...prev,
-            [productId]: 1
-        }));
-    };
-
-    // 장바구니
+    // 장바구니 (기본 1개)
     const handleAddCart = async (productId) => {
         try {
             await addToCart({
                 productId,
-                quantity: quantities[productId] || 1
+                quantity: 1
             });
 
             alert("장바구니 담기 완료");
-            resetQty(productId);
-
         } catch (err) {
             console.error(err);
             alert("실패");
-        }
-    };
-
-    // 바로 구매
-    const handleBuyNow = async (productId) => {
-        if (!window.confirm("구매하시겠습니까?")) return;
-
-        try {
-            await createOrder([
-                {
-                    productId,
-                    quantity: quantities[productId] || 1
-                }
-            ]);
-
-            alert("구매 완료");
-            resetQty(productId);
-
-        } catch (err) {
-            console.error(err);
-            alert("구매 실패");
         }
     };
 
@@ -139,24 +91,20 @@ function MainPage({ user, onLogout }) {
                         <h2 className="font-bold">{p.name}</h2>
                         <p>₩{p.price}</p>
 
-                        <div className="flex items-center gap-2 mt-2">
-                            <button onClick={() => changeQty(p.id, -1)} className="px-2 bg-gray-300">-</button>
-                            <span>{quantities[p.id] || 1}</span>
-                            <button onClick={() => changeQty(p.id, 1)} className="px-2 bg-gray-300">+</button>
-                        </div>
-
+                        {/* 장바구니 */}
                         <button
                             onClick={() => handleAddCart(p.id)}
                             className="mt-2 w-full bg-green-500 text-white p-2 rounded"
                         >
-                            장바구니 담기
+                            장바구니
                         </button>
 
+                        {/* 구매하기 → 모달 */}
                         <button
-                            onClick={() => handleBuyNow(p.id)}
+                            onClick={() => setSelectedProduct(p)}
                             className="mt-2 w-full bg-indigo-600 text-white p-2 rounded"
                         >
-                            바로 구매
+                            구매하기
                         </button>
                     </div>
                 ))}
@@ -176,6 +124,14 @@ function MainPage({ user, onLogout }) {
 
             {showOrder && (
                 <OrderModal onClose={() => setShowOrder(false)} />
+            )}
+
+            {/* 🔥 상세 모달 */}
+            {selectedProduct && (
+                <ProductDetailModal
+                    product={selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                />
             )}
         </div>
     );

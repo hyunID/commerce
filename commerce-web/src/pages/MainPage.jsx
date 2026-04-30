@@ -4,26 +4,35 @@ import { addToCart } from "../api/cart";
 import { createOrder } from "../api/order";
 import AdminModal from "../components/AdminModal";
 import CartModal from "../components/CartModal";
+import OrderModal from "../components/OrderModal";
 
 function MainPage({ user, onLogout }) {
+
     const [showAdmin, setShowAdmin] = useState(false);
     const [showCart, setShowCart] = useState(false);
-    const [products, setProducts] = useState([]);
+    const [showOrder, setShowOrder] = useState(false);
 
-    // 🔥 상품별 수량 상태
+    const [products, setProducts] = useState([]);
     const [quantities, setQuantities] = useState({});
 
+    // ✅ 상품 + 수량 초기화 같이 처리 (핵심)
     const fetchProducts = async () => {
-        const res = await api.get("/products");
-        const data = res.data.data || [];
-        setProducts(data);
+        try {
+            const res = await api.get("/products");
+            const data = res.data.data || [];
 
-        // 초기 수량 1 세팅
-        const initQty = {};
-        data.forEach(p => {
-            initQty[p.id] = 1;
-        });
-        setQuantities(initQty);
+            setProducts(data);
+
+            // 🔥 여기서 초기화 (useEffect 제거)
+            const initQty = {};
+            data.forEach(p => {
+                initQty[p.id] = 1;
+            });
+            setQuantities(initQty);
+
+        } catch (err) {
+            console.error("상품 조회 실패", err);
+        }
     };
 
     useEffect(() => {
@@ -38,7 +47,6 @@ function MainPage({ user, onLogout }) {
         }));
     };
 
-    // 🔥 수량 초기화 함수
     const resetQty = (productId) => {
         setQuantities(prev => ({
             ...prev,
@@ -55,12 +63,10 @@ function MainPage({ user, onLogout }) {
             });
 
             alert("장바구니 담기 완료");
-
-            // ✅ 수량 리셋
             resetQty(productId);
 
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
             alert("실패");
         }
     };
@@ -78,12 +84,10 @@ function MainPage({ user, onLogout }) {
             ]);
 
             alert("구매 완료");
-
-            // ✅ 수량 리셋
             resetQty(productId);
 
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
             alert("구매 실패");
         }
     };
@@ -97,6 +101,13 @@ function MainPage({ user, onLogout }) {
 
                 <div className="flex items-center gap-3">
                     <span>{user.email}</span>
+
+                    <button
+                        onClick={() => setShowOrder(true)}
+                        className="bg-white text-indigo-600 px-3 py-1 rounded"
+                    >
+                        주문 내역
+                    </button>
 
                     <button
                         onClick={() => setShowCart(true)}
@@ -128,26 +139,12 @@ function MainPage({ user, onLogout }) {
                         <h2 className="font-bold">{p.name}</h2>
                         <p>₩{p.price}</p>
 
-                        {/* 수량 컨트롤 */}
                         <div className="flex items-center gap-2 mt-2">
-                            <button
-                                onClick={() => changeQty(p.id, -1)}
-                                className="px-2 bg-gray-300"
-                            >
-                                -
-                            </button>
-
+                            <button onClick={() => changeQty(p.id, -1)} className="px-2 bg-gray-300">-</button>
                             <span>{quantities[p.id] || 1}</span>
-
-                            <button
-                                onClick={() => changeQty(p.id, 1)}
-                                className="px-2 bg-gray-300"
-                            >
-                                +
-                            </button>
+                            <button onClick={() => changeQty(p.id, 1)} className="px-2 bg-gray-300">+</button>
                         </div>
 
-                        {/* 장바구니 */}
                         <button
                             onClick={() => handleAddCart(p.id)}
                             className="mt-2 w-full bg-green-500 text-white p-2 rounded"
@@ -155,7 +152,6 @@ function MainPage({ user, onLogout }) {
                             장바구니 담기
                         </button>
 
-                        {/* 바로 구매 */}
                         <button
                             onClick={() => handleBuyNow(p.id)}
                             className="mt-2 w-full bg-indigo-600 text-white p-2 rounded"
@@ -166,7 +162,7 @@ function MainPage({ user, onLogout }) {
                 ))}
             </div>
 
-            {/* 관리자 */}
+            {/* 모달 */}
             {showAdmin && (
                 <AdminModal
                     onClose={() => setShowAdmin(false)}
@@ -174,9 +170,12 @@ function MainPage({ user, onLogout }) {
                 />
             )}
 
-            {/* 장바구니 */}
             {showCart && (
                 <CartModal onClose={() => setShowCart(false)} />
+            )}
+
+            {showOrder && (
+                <OrderModal onClose={() => setShowOrder(false)} />
             )}
         </div>
     );

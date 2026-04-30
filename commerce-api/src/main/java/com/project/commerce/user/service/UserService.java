@@ -82,9 +82,11 @@ public class UserService {
         User user = userMapper.findByEmail(email)
                 .orElseThrow(() -> new CustomException(404, "USER NOT FOUND"));
 
-        System.out.println("유저 찾음: " + user.getEmail());
+        System.out.println("유저 Id: " + user.getId());
+        System.out.println("유저 Email: " + user.getEmail());
+        System.out.println("유저 Role: " + user.getRole());
 
-        String token = JwtUtil.createToken(user.getEmail(), user.getRole());
+        String token = JwtUtil.createToken(user.getId(),user.getEmail(), user.getRole());
         System.out.println("토큰 생성 완료");
 
         return token;

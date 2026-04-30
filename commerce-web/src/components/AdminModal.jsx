@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ProductForm from "../pages/admin/ProductForm";
 import ProductList from "../pages/admin/ProductList";
+import OrderList from "../pages/admin/OrderList";
 
 function AdminModal({ onClose, onProductChange }) {
     const [menu, setMenu] = useState("product");
@@ -23,6 +24,9 @@ function AdminModal({ onClose, onProductChange }) {
                         <li onClick={() => setMenu("product")} className="cursor-pointer">
                             상품 관리
                         </li>
+                        <li onClick={() => setMenu("order")} className="cursor-pointer">
+                            주문 관리
+                        </li>
                         <li onClick={() => setMenu("user")} className="cursor-pointer">
                             회원 관리
                         </li>
@@ -33,7 +37,9 @@ function AdminModal({ onClose, onProductChange }) {
                 <div className="flex-1 p-6 overflow-y-auto">
                     <div className="flex justify-between mb-4">
                         <h2 className="text-xl font-bold">
-                            {menu === "product" ? "상품 관리" : "회원 관리"}
+                            {menu === "product" && "상품 관리"}
+                            {menu === "order" && "주문 관리"}
+                            {menu === "user" && "회원 관리"}
                         </h2>
 
                         <button onClick={onClose} className="text-red-500">
@@ -47,6 +53,8 @@ function AdminModal({ onClose, onProductChange }) {
                             <ProductList key={refreshKey} onChange={handleRefresh} />
                         </>
                     )}
+
+                    {menu === "order" && <OrderList />}
                 </div>
 
             </div>

@@ -16,30 +16,38 @@ function MainPage({ user, onLogout }) {
 
     const [products, setProducts] = useState([]);
 
+    // 장바구니 UI 상태 (담긴 상품 표시)
+    const [addedMap, setAddedMap] = useState({});
+
     const fetchProducts = async () => {
-        try {
-            const res = await api.get("/products");
-            setProducts(res.data.data || []);
-        } catch (err) {
-            console.error(err);
-        }
+        const res = await api.get("/products");
+        setProducts(res.data.data || []);
     };
 
     useEffect(() => {
         fetchProducts();
     }, []);
 
-    // 장바구니 (기본 1개)
+    // 장바구니 담기 (UI 효과 포함)
     const handleAddCart = async (productId) => {
         try {
-            await addToCart({
-                productId,
-                quantity: 1
-            });
+            await addToCart({ productId, quantity: 1 });
 
-            alert("장바구니 담기 완료");
+            // 🔥 버튼 상태 변경
+            setAddedMap(prev => ({
+                ...prev,
+                [productId]: true
+            }));
+
+            // 🔥 2초 후 원복
+            setTimeout(() => {
+                setAddedMap(prev => ({
+                    ...prev,
+                    [productId]: false
+                }));
+            }, 2000);
+
         } catch (err) {
-            console.error(err);
             alert("실패");
         }
     };
@@ -94,17 +102,19 @@ function MainPage({ user, onLogout }) {
                         {/* 장바구니 */}
                         <button
                             onClick={() => handleAddCart(p.id)}
-                            className="mt-2 w-full bg-green-500 text-white p-2 rounded"
+                            className={`mt-2 w-full p-2 rounded text-white transition 
+                                ${addedMap[p.id] ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"}
+                            `}
                         >
-                            장바구니
+                            {addedMap[p.id] ? "✔ 담김!" : "장바구니 담기"}
                         </button>
 
-                        {/* 구매하기 → 모달 */}
+                        {/* 구매 */}
                         <button
                             onClick={() => setSelectedProduct(p)}
-                            className="mt-2 w-full bg-indigo-600 text-white p-2 rounded"
+                            className="mt-2 w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
                         >
-                            구매하기
+                            구매
                         </button>
                     </div>
                 ))}
@@ -126,7 +136,6 @@ function MainPage({ user, onLogout }) {
                 <OrderModal onClose={() => setShowOrder(false)} />
             )}
 
-            {/* 🔥 상세 모달 */}
             {selectedProduct && (
                 <ProductDetailModal
                     product={selectedProduct}

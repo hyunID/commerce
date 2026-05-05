@@ -5,9 +5,9 @@ import {
     deleteCartItem,
     clearCart
 } from "../api/cart";
-import { createOrder } from "../api/order";
+import { cartOrder } from "../api/order";
 
-function CartModal({ onClose }) {
+function CartModal({ onClose , onOrderComplete}) {
     const [cart, setCart] = useState(null);
     const [quantities, setQuantities] = useState({});
 
@@ -58,18 +58,32 @@ function CartModal({ onClose }) {
         if (!window.confirm("주문하시겠습니까?")) return;
 
         try {
-            const items = cart.items.map(item => ({
+
+            for (const item of cart.items) {
+
+                console.log("상품명 : "+item.productName+ "  재고 : "+ item.stock);
+                console.log( "구매 : "+ item.quantity);
+                if (item.stock < item.quantity) {
+                    alert(`${item.productName} 재고 부족`);
+                    return;
+                }
+            }
+
+            // item 전달 안해도됨 jwt 필터에서 userid 값으로 불러와 사용할거임.
+           /* const items = cart.items.map(item => ({
                 productId: item.productId,
                 quantity: item.quantity
-            }));
+            }));*/
 
-            await createOrder(items);
+            await cartOrder();
 
             alert("주문 완료");
 
             await clearCart();
             fetchCart();
+            onOrderComplete?.();
             onClose();
+
         } catch (e) {
             console.error(e);
             alert("주문 실패");

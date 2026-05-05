@@ -6,9 +6,21 @@ export const getProducts = async () => {
     return res.data;
 };
 
+// 관리자용 상품 목록 (삭제 포함)
+export const getAdminProducts = async () => {
+    const res = await api.get("/products/admin");
+    return res.data;
+};
+
 // 상품 등록
 export const createProduct = async (formData) => {
     const res = await api.post("/products", formData);
+    return res.data;
+};
+
+// 상품 수정
+export const updateProduct = async (id) => {
+    const res = await api.put(`/products/${id}`);
     return res.data;
 };
 

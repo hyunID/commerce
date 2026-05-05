@@ -22,12 +22,19 @@ public class ProductController {
         productService.create(dto, image);
         return ApiResponse.success(null);
     }
-
+    // 사용자용 상품  조회
     @GetMapping
     public ApiResponse<?> list() {
         return ApiResponse.success(productService.getAll());
     }
 
+    //관리자용 상품 전체 조회
+    @GetMapping("/admin")
+    public ApiResponse<?> listAdmin() {
+        return ApiResponse.success(productService.getAllAdmin());
+    }
+
+    // 상품 수정
     @PutMapping("/{id}")
     public ApiResponse<?> update(
             @PathVariable Long id,
@@ -37,7 +44,7 @@ public class ProductController {
         productService.update(id, dto, image);
         return ApiResponse.success(null);
     }
-
+    // 상품 삭제(상태값 변경)
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
         productService.delete(id);

@@ -1,6 +1,9 @@
 package com.project.commerce.product.service;
 
+import com.project.commerce.inventory.entity.Inventory;
+import com.project.commerce.inventory.repository.InventoryRepository;
 import com.project.commerce.product.dto.ProductRequestDTO;
+import com.project.commerce.product.dto.ProductResponseDTO;
 import com.project.commerce.product.entity.Product;
 import com.project.commerce.repository.ProductRepository;
 import io.jsonwebtoken.io.IOException;
@@ -19,24 +22,59 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
 
     @Transactional
     public void create(ProductRequestDTO dto, MultipartFile image) {
 
-        String imageUrl = saveImage(image); // 임시
+        // 1. 이미지 저장
+        String imageUrl = saveImage(image);
 
+        // 2. 상품 생성
         Product p = new Product();
         p.setName(dto.getName());
         p.setPrice(dto.getPrice());
         p.setDescription(dto.getDescription());
         p.setImageUrl(imageUrl);
-        System.out.println(" create  ="+ p);
+
+        p.setStatus("SOLD_OUT");// 상태값 기본 재고 초기 0 생성 상품 값도 SOLD_OUT 상태로 생성.
         productRepository.save(p);
+
+        System.out.println(" create =" + p);
+
+        // 3. 재고 자동 생성
+        inventoryRepository.findByProductId(p.getId())
+                .orElseGet(() -> {
+                    Inventory inv = new Inventory();
+                    inv.setProductId(p.getId());
+                    inv.setStock(0);      // 초기값
+                    inv.setReserved(0);
+                    return inventoryRepository.save(inv);
+                });
     }
 
-    public List<Product> getAll() {
+    /*public List<Product> getAll() {
         return productRepository.findAll();
+    }*/
+
+
+    // 전체 조회 (삭제 제외)
+    public List<ProductResponseDTO> getAll() {
+        return productRepository.findAll()
+                .stream()
+                .filter(p -> !"DELETED".equals(p.getStatus()))
+                .map(this::toDto)
+                .toList();
     }
+
+    // 관리자용 전체 조회 (삭제 포함)
+    public List<ProductResponseDTO> getAllAdmin() {
+        return productRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
 
     @Transactional
     public void update(Long id, ProductRequestDTO dto, MultipartFile image) {
@@ -67,7 +105,12 @@ public class ProductService {
     @Transactional
     public void delete(Long id) {
         System.out.println(" delete id ="+ id);
-        productRepository.deleteById(id);
+
+        Product p = productRepository.findById(id)
+                .orElseThrow();
+        p.setStatus("DELETED"); // 물리삭제 → 상태삭제
+
+        //productRepository.deleteById(id);
     }
 
     @Value("${file.upload-dir}")
@@ -87,5 +130,29 @@ public class ProductService {
 
         return fileName;
     }
+
+
+    private ProductResponseDTO toDto(Product p) {
+
+        Inventory inv = inventoryRepository
+                .findByProductId(p.getId())
+                .orElse(null);
+
+        int stock = inv != null ? inv.getStock() : 0;
+        //int available = inv != null ? inv.getAvailableStock() : 0;
+        System.out.println("----------------------");
+        System.out.println("stock"+stock);
+
+        return new ProductResponseDTO(
+                p.getId(),
+                p.getName(),
+                p.getPrice(),
+                p.getDescription(),
+                p.getImageUrl(),
+                p.getStatus(),
+                stock
+        );
+    }
+
 
 }

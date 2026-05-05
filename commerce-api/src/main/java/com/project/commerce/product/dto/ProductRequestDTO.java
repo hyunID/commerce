@@ -10,5 +10,6 @@ public class ProductRequestDTO {
     private String name;
     private int price;
     private String description;
+    private String status;
 
 }

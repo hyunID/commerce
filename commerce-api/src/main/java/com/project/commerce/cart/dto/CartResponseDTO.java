@@ -20,5 +20,6 @@ public class CartResponseDTO {
         private String productName;
         private int price;
         private int quantity;
+        private int stock;//재고
     }
 }

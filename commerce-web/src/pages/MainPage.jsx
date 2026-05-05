@@ -15,8 +15,6 @@ function MainPage({ user, onLogout }) {
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const [products, setProducts] = useState([]);
-
-    // 장바구니 UI 상태 (담긴 상품 표시)
     const [addedMap, setAddedMap] = useState({});
 
     const fetchProducts = async () => {
@@ -28,26 +26,18 @@ function MainPage({ user, onLogout }) {
         fetchProducts();
     }, []);
 
-    // 장바구니 담기 (UI 효과 포함)
     const handleAddCart = async (productId) => {
         try {
             await addToCart({ productId, quantity: 1 });
 
-            // 🔥 버튼 상태 변경
-            setAddedMap(prev => ({
-                ...prev,
-                [productId]: true
-            }));
+            setAddedMap(prev => ({ ...prev, [productId]: true }));
 
-            // 🔥 2초 후 원복
             setTimeout(() => {
-                setAddedMap(prev => ({
-                    ...prev,
-                    [productId]: false
-                }));
+                setAddedMap(prev => ({ ...prev, [productId]: false }));
             }, 2000);
 
         } catch (err) {
+            console.log(err);
             alert("실패");
         }
     };
@@ -88,36 +78,78 @@ function MainPage({ user, onLogout }) {
 
             {/* 상품 리스트 */}
             <div className="p-6 grid grid-cols-4 gap-4">
-                {products.map((p) => (
-                    <div key={p.id} className="bg-white p-4 rounded shadow">
+                {products.map((p) => {
 
-                        <img
-                            src={`http://localhost:8081/images/${p.imageUrl}`}
-                            className="h-32 w-full object-cover mb-2"
-                        />
+                    const isSoldOut = p.status === "SOLD_OUT";
 
-                        <h2 className="font-bold">{p.name}</h2>
-                        <p>₩{p.price}</p>
-
-                        {/* 장바구니 */}
-                        <button
-                            onClick={() => handleAddCart(p.id)}
-                            className={`mt-2 w-full p-2 rounded text-white transition 
-                                ${addedMap[p.id] ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"}
+                    return (
+                        <div
+                            key={p.id}
+                            className={`bg-white p-4 rounded shadow transition
+                                ${isSoldOut ? "opacity-50" : "hover:shadow-md"}
                             `}
                         >
-                            {addedMap[p.id] ? "✔ 담김!" : "장바구니 담기"}
-                        </button>
 
-                        {/* 구매 */}
-                        <button
-                            onClick={() => setSelectedProduct(p)}
-                            className="mt-2 w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
-                        >
-                            구매
-                        </button>
-                    </div>
-                ))}
+                            {/* 이미지 */}
+                            <img
+                                src={`http://localhost:8081/images/${p.imageUrl}`}
+                                className="h-32 w-full object-cover mb-2"
+                            />
+
+                            {/* 이름 */}
+                            <h2 className="font-bold">{p.name}</h2>
+
+                            {/* 가격 */}
+                            <p>₩{p.price}</p>
+
+                            {/* 상태 */}
+                            <p className={`text-sm font-bold
+                                ${isSoldOut ? "text-red-500" : "text-green-600"}
+                            `}>
+                                {isSoldOut ? "품절" : "판매중"}
+                            </p>
+
+                            {/* 재고 */}
+                            <p className="text-sm text-gray-500">
+                                재고: {p.stock ?? 0}
+                            </p>
+
+                            {/* 장바구니 */}
+                            <button
+                                disabled={isSoldOut}
+                                onClick={() => handleAddCart(p.id)}
+                                className={`mt-2 w-full p-2 rounded text-white 
+                                    ${isSoldOut
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : addedMap[p.id]
+                                        ? "bg-gray-400"
+                                        : "bg-green-500"
+                                }
+                                `}
+                            >
+                                {isSoldOut
+                                    ? "품절"
+                                    : addedMap[p.id]
+                                        ? "✔ 담김!"
+                                        : "장바구니 담기"}
+                            </button>
+
+                            {/* 구매 */}
+                            <button
+                                disabled={isSoldOut}
+                                onClick={() => setSelectedProduct(p)}
+                                className={`mt-2 w-full p-2 rounded text-white
+                                    ${isSoldOut
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : "bg-indigo-600"
+                                }
+                                `}
+                            >
+                                {isSoldOut ? "품절" : "구매"}
+                            </button>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* 모달 */}
@@ -129,17 +161,23 @@ function MainPage({ user, onLogout }) {
             )}
 
             {showCart && (
-                <CartModal onClose={() => setShowCart(false)} />
+                <CartModal
+                    onClose={() => setShowCart(false)}
+                    onOrderComplete={fetchProducts}
+                />
             )}
 
             {showOrder && (
-                <OrderModal onClose={() => setShowOrder(false)} />
+                <OrderModal
+                    onClose={() => setShowOrder(false)}
+                />
             )}
 
             {selectedProduct && (
                 <ProductDetailModal
                     product={selectedProduct}
                     onClose={() => setSelectedProduct(null)}
+                    onOrderComplete={fetchProducts}
                 />
             )}
         </div>

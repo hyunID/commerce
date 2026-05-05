@@ -1,10 +1,12 @@
 package com.project.commerce.order.controller;
 
+import com.project.commerce.global.jwt.JwtUtil;
 import com.project.commerce.global.response.ApiResponse;
 import com.project.commerce.order.dto.OrderRequestDTO;
 import com.project.commerce.order.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,16 +15,34 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtUtil jwtUtil;
 
-    // 생성
-    @PostMapping
-    public ApiResponse<?> create(
-            @RequestBody OrderRequestDTO dto,
-            HttpServletRequest request
+    // 장바구니 구매
+    @PostMapping("/cart")
+    public ApiResponse<?> orderFromCart(
+            @RequestHeader("Authorization") String token
     ) {
-        Long userId = (Long) request.getAttribute("userId");
 
-        orderService.createOrder(userId, dto);
+        Long userId = jwtUtil.getUserId(token);
+
+        orderService.createOrderFromCart(userId);
+
+        return ApiResponse.success(null);
+    }
+
+    // 바로 구매
+    @PostMapping("/direct")
+    public ApiResponse<?> directOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestBody OrderRequestDTO dto
+    ) {
+
+        Long userId = jwtUtil.getUserId(token);
+
+        System.out.println(userId);
+        System.out.println(dto);
+        orderService.createDirectOrder(userId, dto);
+
         return ApiResponse.success(null);
     }
 

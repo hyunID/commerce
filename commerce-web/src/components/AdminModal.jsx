@@ -2,6 +2,7 @@ import { useState } from "react";
 import ProductForm from "../pages/admin/ProductForm";
 import ProductList from "../pages/admin/ProductList";
 import OrderList from "../pages/admin/OrderList";
+import InventoryList from "../pages/admin/InventoryList"; // ✅ 추가
 
 function AdminModal({ onClose, onProductChange }) {
     const [menu, setMenu] = useState("product");
@@ -21,30 +22,22 @@ function AdminModal({ onClose, onProductChange }) {
                     <h2 className="text-lg font-bold mb-6">관리자</h2>
 
                     <ul className="space-y-3">
-                        <li onClick={() => setMenu("product")} className="cursor-pointer">
-                            상품 관리
-                        </li>
-                        <li onClick={() => setMenu("order")} className="cursor-pointer">
-                            주문 관리
-                        </li>
-                        <li onClick={() => setMenu("user")} className="cursor-pointer">
-                            회원 관리
-                        </li>
+                        <li onClick={() => setMenu("product")} className="cursor-pointer">상품 관리</li>
+                        <li onClick={() => setMenu("order")} className="cursor-pointer">주문 관리</li>
+                        <li onClick={() => setMenu("inventory")} className="cursor-pointer">재고 관리</li> {/* ✅ */}
+                        <li className="cursor-pointer">회원 관리</li>
                     </ul>
                 </div>
 
-                {/* 우측 컨텐츠 */}
+                {/* 우측 */}
                 <div className="flex-1 p-6 overflow-y-auto">
                     <div className="flex justify-between mb-4">
                         <h2 className="text-xl font-bold">
                             {menu === "product" && "상품 관리"}
                             {menu === "order" && "주문 관리"}
-                            {menu === "user" && "회원 관리"}
+                            {menu === "inventory" && "재고 관리"}
                         </h2>
-
-                        <button onClick={onClose} className="text-red-500">
-                            닫기
-                        </button>
+                        <button onClick={onClose}>닫기</button>
                     </div>
 
                     {menu === "product" && (
@@ -55,8 +48,8 @@ function AdminModal({ onClose, onProductChange }) {
                     )}
 
                     {menu === "order" && <OrderList />}
+                    {menu === "inventory" && <InventoryList />} {/* ✅ */}
                 </div>
-
             </div>
         </div>
     );

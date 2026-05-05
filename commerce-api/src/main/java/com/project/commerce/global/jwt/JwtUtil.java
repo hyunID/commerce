@@ -2,10 +2,12 @@ package com.project.commerce.global.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
     private static final String SECRET = "mysecretkeymysecretkeymysecretkey"; // 32자 이상
@@ -13,12 +15,12 @@ public class JwtUtil {
 
     private static final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    // 🔥 토큰 생성 (userId 포함)
+    //  토큰 생성 (userId 포함)
     public static String createToken(Long userId, String email, String role) {
 
         return Jwts.builder()
                 .setSubject(email)
-                .claim("userId", userId)   // ✅ 핵심
+                .claim("userId", userId)   //  핵심
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXP))
@@ -36,7 +38,7 @@ public class JwtUtil {
         return (String) parse(token).get("role");
     }
 
-    // 🔥 userId 추출 (안전 처리)
+    // userId 추출 (안전 처리)
     public static Long getUserId(String token) {
 
         Object userId = parse(token).get("userId");
@@ -58,8 +60,14 @@ public class JwtUtil {
         }
     }
 
-    // 🔥 공통 파싱 메서드 (중복 제거)
+    // 공통 파싱 메서드 (중복 제거)
     private static Claims parse(String token) {
+
+        // Bearer 제거
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()

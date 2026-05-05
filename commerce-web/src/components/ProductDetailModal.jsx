@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { createOrder } from "../api/order";
+import { directOrder } from "../api/order";
 
-function ProductDetailModal({ product, onClose }) {
+function ProductDetailModal({ product, onClose, onOrderComplete }) {
 
     const [qty, setQty] = useState(1);
 
@@ -10,10 +10,20 @@ function ProductDetailModal({ product, onClose }) {
     };
 
     const handleBuy = async () => {
+
+        console.log(product);
+        console.log("재고="+product.stock);
+        console.log("구매 수량="+qty);
+
+        if (product.stock < qty) {
+            alert("재고 부족");
+            return;
+        }
+
         if (!window.confirm("구매하시겠습니까?")) return;
 
         try {
-            await createOrder([
+            await directOrder([
                 {
                     productId: product.id,
                     quantity: qty
@@ -21,10 +31,11 @@ function ProductDetailModal({ product, onClose }) {
             ]);
 
             alert("구매 완료");
+            onOrderComplete?.();
             onClose();
 
         } catch (err) {
-            console.log(err);
+            console.error(err);
             alert("구매 실패");
         }
     };

@@ -41,6 +41,9 @@ public class ProductController {
             @RequestPart("data") ProductRequestDTO dto,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
+        System.out.println("id");
+        System.out.println("_________________dto______________________");
+        System.out.println(dto);
         productService.update(id, dto, image);
         return ApiResponse.success(null);
     }

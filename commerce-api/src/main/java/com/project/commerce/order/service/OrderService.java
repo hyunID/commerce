@@ -28,11 +28,16 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final InventoryService inventoryService;
 
-
-
-    //장바구니 주문
+    /*
+     =========================================================
+      장바구니 주문 생성
+      - 주문 상태 : PENDING
+      - reserve 처리만 수행
+      - 실제 재고 차감(confirm)은 결제 성공 시 PaymentService에서 처리
+     =========================================================
+    */
     @Transactional
-    public void createOrderFromCart(Long userId) {
+    public Order createOrderFromCart(Long userId) {
 
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("장바구니 없음"));
@@ -42,7 +47,10 @@ public class OrderService {
         }
 
         Order order = new Order();
+
         order.setUserId(userId);
+
+        // 결제 대기 상태
         order.setStatus("PENDING");
 
         int totalPrice = 0;
@@ -51,11 +59,37 @@ public class OrderService {
 
             Product product = item.getProduct();
 
-            //재고 처리 .  reserve → confirm 순서
+            /*
+             =========================================================
+              기존 방식
+              주문 생성 시 reserve + confirm 둘 다 수행
+
+              문제:
+              결제 전인데 실제 재고가 차감됨
+             =========================================================
+            */
+
+            /*
             inventoryService.reserve(product.getId(), item.getQuantity());
             inventoryService.confirm(product.getId(), item.getQuantity());
+            */
+
+            /*
+             =========================================================
+              변경 방식
+              reserve만 수행
+
+              실제 재고 차감(confirm)은
+              결제 성공 시 PaymentService.confirm() 에서 수행
+             =========================================================
+            */
+            inventoryService.reserve(
+                    product.getId(),
+                    item.getQuantity()
+            );
 
             OrderItem orderItem = new OrderItem();
+
             orderItem.setProduct(product);
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPrice(product.getPrice());
@@ -69,17 +103,41 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        //장바구니 비우기
+        /*
+         =========================================================
+          장바구니 비우기
+
+          현재는 주문 생성 시 비움
+          실무에서는 결제 성공(PAID) 시점에 비우는 경우 많음
+
+          현재 구조 유지
+         =========================================================
+        */
         cart.getItems().clear();
+
+        return order;
     }
 
+    /*
+     =========================================================
+      바로 구매 (상세페이지 구매)
 
-     //바로 구매
+      상세페이지에서도 수량 선택 가능하므로
+      createDirectOrder 이름 유지
+
+      - 주문 상태 : PENDING
+      - reserve만 수행
+      - 실제 차감(confirm)은 결제 성공 시 수행
+     =========================================================
+    */
     @Transactional
-    public void createDirectOrder(Long userId, OrderRequestDTO dto) {
+    public Order createDirectOrder(Long userId, OrderRequestDTO dto) {
 
         Order order = new Order();
+
         order.setUserId(userId);
+
+        // 결제 대기 상태
         order.setStatus("PENDING");
 
         int totalPrice = 0;
@@ -89,11 +147,31 @@ public class OrderService {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("상품 없음"));
 
-            //재고 처리 .  reserve → confirm 순서
+            /*
+             =========================================================
+              기존 즉시 차감 방식
+              결제 전인데 실제 재고 차감됨
+             =========================================================
+            */
+
+            /*
             inventoryService.reserve(product.getId(), item.getQuantity());
             inventoryService.confirm(product.getId(), item.getQuantity());
+            */
+
+            /*
+             =========================================================
+              변경 방식
+              reserve만 수행
+             =========================================================
+            */
+            inventoryService.reserve(
+                    product.getId(),
+                    item.getQuantity()
+            );
 
             OrderItem orderItem = new OrderItem();
+
             orderItem.setProduct(product);
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPrice(product.getPrice());
@@ -105,10 +183,20 @@ public class OrderService {
 
         order.setTotalPrice(totalPrice);
 
-        orderRepository.save(order);
+        return orderRepository.save(order);
     }
 
-    //주문 취소
+    /*
+     =========================================================
+      주문 취소
+
+      PENDING
+      → reserve 해제(cancelReserve)
+
+      PAID
+      → 실제 재고 복구(restore)
+     =========================================================
+    */
     @Transactional
     public void cancelOrder(Long userId, Long orderId) {
 
@@ -119,24 +207,55 @@ public class OrderService {
             throw new RuntimeException("권한 없음");
         }
 
-        if (!order.getStatus().equals("PENDING")) {
-            throw new RuntimeException("이미 처리된 주문");
+        /*
+         =========================================================
+          결제 대기 상태 취소
+          reserve만 해제
+         =========================================================
+        */
+        if ("PENDING".equals(order.getStatus())) {
+
+            for (OrderItem item : order.getItems()) {
+
+                inventoryService.cancelReserve(
+                        item.getProduct().getId(),
+                        item.getQuantity()
+                );
+            }
+
+            order.setStatus("CANCELLED");
+
+            return;
         }
 
-        // 재고 복구
-        for (OrderItem item : order.getItems()) {
-            inventoryService.restore(
-                    item.getProduct().getId(),
-                    item.getQuantity()
-            );
+        /*
+         =========================================================
+          결제 완료 상태 취소
+          실제 재고 복구
+         =========================================================
+        */
+        if ("PAID".equals(order.getStatus())) {
+
+            for (OrderItem item : order.getItems()) {
+
+                inventoryService.restore(
+                        item.getProduct().getId(),
+                        item.getQuantity()
+                );
+            }
+
+            order.setStatus("CANCELLED");
+
+            return;
         }
 
-        order.setStatus("CANCELLED");
+        throw new RuntimeException("취소 불가능 상태");
     }
 
-    //조회
+    // 내 주문 조회
     @Transactional(readOnly = true)
     public List<OrderResponseDTO> getMyOrders(Long userId) {
+
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::toDto)
@@ -160,6 +279,7 @@ public class OrderService {
     // 관리자 전체 조회
     @Transactional(readOnly = true)
     public List<OrderResponseDTO> getAllOrders() {
+
         return orderRepository.findAll()
                 .stream()
                 .map(this::toDto)
@@ -169,10 +289,12 @@ public class OrderService {
     // 관리자 삭제
     @Transactional
     public void deleteOrder(Long orderId) {
+
         orderRepository.deleteById(orderId);
     }
 
     private OrderResponseDTO toDto(Order order) {
+
         return OrderResponseDTO.builder()
                 .id(order.getId())
                 .totalPrice(order.getTotalPrice())
@@ -187,5 +309,17 @@ public class OrderService {
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+
+
+    // 주문 상태 조회 (polling용)
+    @Transactional(readOnly = true)
+    public String getOrderStatus(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("주문 없음"));
+
+        return order.getStatus();
     }
 }

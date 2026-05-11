@@ -18,9 +18,9 @@ function ProductList({ onChange }) {
     });
     const [editImage, setEditImage] = useState(null);
 
-    // 🔥 상품 조회
+    //  상품 조회
     const fetchProducts = async () => {
-        setLoading(true); // 🔥 재조회 시 로딩 다시 ON
+        setLoading(true); //  재조회 시 로딩 다시 ON
         try {
             const res = await getAdminProducts();
             console.log("상품 조회 성공");
@@ -33,7 +33,7 @@ function ProductList({ onChange }) {
         }
     };
 
-    // 🔥 삭제
+    //  삭제
     const handleDelete = async (id) => {
         if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
@@ -48,7 +48,7 @@ function ProductList({ onChange }) {
         }
     };
 
-    // 🔥 수정
+    //  수정
     const handleUpdate = async (id) => {
         try {
             const data = new FormData();
@@ -64,7 +64,7 @@ function ProductList({ onChange }) {
                 data.append("image", editImage);
             }
 
-            await updateProduct(id);
+            await updateProduct(id,data);
             alert("수정 완료");
 
             // 상태 초기화

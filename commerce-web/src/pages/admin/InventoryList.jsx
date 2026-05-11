@@ -6,7 +6,7 @@ import {
 
 function InventoryList() {
     const [list, setList] = useState([]);
-    const [editMap, setEditMap] = useState({}); // 🔥 입력값 관리
+    const [editMap, setEditMap] = useState({}); //  입력값 관리
 
     const fetchInventory = async () => {
         const data = await getInventoryList();

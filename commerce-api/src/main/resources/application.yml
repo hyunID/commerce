@@ -25,6 +25,8 @@ logging:
   level:
     org.mybatis: debug
     org.hibernate.SQL: debug
+    # 바인딩 파라미터 출력
+    org.hibernate.orm.jdbc.bind: trace
 
 
 file:

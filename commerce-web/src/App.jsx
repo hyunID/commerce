@@ -4,6 +4,9 @@ import { getMe } from "./api/auth";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
 
+// 결제 페이지 import
+import SuccessPage from "./pages/payment/SuccessPage";
+import FailPage from "./pages/payment/FailPage";
 
 function App() {
     const [user, setUser] = useState(null);
@@ -36,6 +39,8 @@ function App() {
 
     return (
         <Routes>
+
+            {/* 메인 */}
             <Route
                 path="/"
                 element={
@@ -46,6 +51,19 @@ function App() {
                     )
                 }
             />
+
+            {/* 결제 성공 페이지 */}
+            <Route
+                path="/payment/success-page"
+                element={<SuccessPage />}
+            />
+
+            {/* 결제 실패 페이지 */}
+            <Route
+                path="/payment/fail-page"
+                element={<FailPage />}
+            />
+
         </Routes>
     );
 }

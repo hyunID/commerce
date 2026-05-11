@@ -31,15 +31,14 @@ function ProductForm({ onSuccess }) {
 
 
 
-        // 🔥 부모 리스트 새로고침
-
+        //   리스트 새로고침
         onSuccess?.();
 
-        // 🔥 2. 폼 초기화
+        //  2. 폼 초기화
         setForm({ name: "", price: "", description: "" });
         setImage(null);
 
-        // 🔥 3. 파일 input 리셋 핵심
+        //  3. 파일 input 리셋 핵심
         document.getElementById("product-image").value = "";
     };
 

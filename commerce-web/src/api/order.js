@@ -29,3 +29,8 @@ export const cancelOrder = async (id) => {
 export const deleteOrder = async (id) => {
     return await api.delete(`/orders/${id}`);
 };
+
+// 주문 상태 조회
+export const getOrderStatus = async (orderId) => {
+    return await api.get(`/orders/${orderId}/status`);
+};

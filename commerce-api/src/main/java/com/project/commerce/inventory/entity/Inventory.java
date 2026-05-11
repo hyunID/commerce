@@ -45,7 +45,7 @@ public class Inventory {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 🔥 핵심 계산 메서드
+    //  계산 메서드
     public int getAvailableStock() {
         return stock - reserved;
     }

@@ -81,6 +81,10 @@ public class ProductService {
         Product p = productRepository.findById(id)
                 .orElseThrow();
         System.out.println(" update id ="+ id);
+        System.out.println(" getName() ="+ dto.getName());
+        System.out.println(" getPrice() ="+ dto.getPrice());
+        System.out.println(" getDescription ="+ dto.getDescription());
+
         p.setName(dto.getName());
         p.setPrice(dto.getPrice());
         p.setDescription(dto.getDescription());
@@ -134,14 +138,30 @@ public class ProductService {
 
     private ProductResponseDTO toDto(Product p) {
 
+
         Inventory inv = inventoryRepository
                 .findByProductId(p.getId())
                 .orElse(null);
 
-        int stock = inv != null ? inv.getStock() : 0;
-        //int available = inv != null ? inv.getAvailableStock() : 0;
+        // 실제 총 재고
+        int stock = inv != null
+                ? inv.getStock()
+                : 0;
+
+        // 예약 재고
+        int reserved = inv != null
+                ? inv.getReserved()
+                : 0;
+
+        // 구매 가능 재고
+        int availableStock = stock - reserved;
+
+
         System.out.println("----------------------");
-        System.out.println("stock"+stock);
+        System.out.println("stock ="+stock);
+        System.out.println("reserved ="+reserved);
+        System.out.println("availableStock ="+availableStock);
+        System.out.println("----------------------");
 
         return new ProductResponseDTO(
                 p.getId(),
@@ -150,7 +170,9 @@ public class ProductService {
                 p.getDescription(),
                 p.getImageUrl(),
                 p.getStatus(),
-                stock
+                stock,
+                reserved,
+                availableStock
         );
     }
 

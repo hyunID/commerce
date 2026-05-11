@@ -14,5 +14,7 @@ public class ProductResponseDTO {
     private String imageUrl;
     private String status;
     private int stock;
+    private Integer reserved;
+    private Integer availableStock;
 
 }

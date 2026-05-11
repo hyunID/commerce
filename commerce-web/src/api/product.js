@@ -19,8 +19,18 @@ export const createProduct = async (formData) => {
 };
 
 // 상품 수정
-export const updateProduct = async (id) => {
-    const res = await api.put(`/products/${id}`);
+export const updateProduct = async (id, formData) => {
+
+    const res = await api.put(
+        `/products/${id}`,
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        }
+    );
+
     return res.data;
 };
 

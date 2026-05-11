@@ -111,7 +111,7 @@ function MainPage({ user, onLogout }) {
 
                             {/* 재고 */}
                             <p className="text-sm text-gray-500">
-                                재고: {p.stock ?? 0}
+                                재고: {p.availableStock ?? 0}
                             </p>
 
                             {/* 장바구니 */}

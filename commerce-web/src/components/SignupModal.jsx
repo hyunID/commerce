@@ -31,7 +31,7 @@ function SignupModal({ onClose }) {
                     회원가입
                 </h2>
 
-                {/* 🔥 핵심: flex-col + gap + w-full */}
+                {/*  핵심: flex-col + gap + w-full */}
                 <div className="flex flex-col gap-4">
 
                     <input

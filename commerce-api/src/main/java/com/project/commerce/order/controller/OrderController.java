@@ -3,6 +3,7 @@ package com.project.commerce.order.controller;
 import com.project.commerce.global.jwt.JwtUtil;
 import com.project.commerce.global.response.ApiResponse;
 import com.project.commerce.order.dto.OrderRequestDTO;
+import com.project.commerce.order.entity.Order;
 import com.project.commerce.order.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -89,4 +90,16 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ApiResponse.success(null);
     }
+
+
+    @GetMapping("/{orderId}/status")
+    public ApiResponse<?> getOrderStatus(
+            @PathVariable Long orderId
+    ) {
+        String status = orderService.getOrderStatus(orderId);
+
+        return ApiResponse.success(status);
+    }
+
+
 }

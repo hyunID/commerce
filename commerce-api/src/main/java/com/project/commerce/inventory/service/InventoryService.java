@@ -65,8 +65,8 @@ public class InventoryService {
         }
 
         // 재고 체크
-        System.out.println("카트 문 잔여 재고=" +inv.getStock() );
-        System.out.println("카트 주문 예약=" +inv.getReserved());
+        System.out.println("잔여 재고 =" +inv.getStock() );
+        System.out.println("예약 주문 =" +inv.getReserved());
 
         int available = inv.getStock() - inv.getReserved();
 
@@ -125,6 +125,10 @@ public class InventoryService {
         Inventory inv = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("재고 없음"));
 
+        System.out.println("--------------------예약 취소--------------------");
+        System.out.println("productId="+ productId);
+        System.out.println(inv.getReserved());
+        System.out.println(qty);
         // reserved 음수 방지
         if (inv.getReserved() < qty) {
             throw new RuntimeException("예약 수량 오류");
@@ -215,5 +219,8 @@ public class InventoryService {
 
         updateProductStatus(inv);
     }
+
+
+
 
 }

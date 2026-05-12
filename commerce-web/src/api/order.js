@@ -34,3 +34,11 @@ export const deleteOrder = async (id) => {
 export const getOrderStatus = async (orderId) => {
     return await api.get(`/orders/${orderId}/status`);
 };
+
+// 결제 취소
+export const cancelPayment = async (paymentKey) => {
+    return await api.post("/payment/cancel", {
+        paymentKey: paymentKey,
+        cancelReason: "USER_CANCEL"
+    });
+};

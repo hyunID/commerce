@@ -33,4 +33,10 @@ public class Order {
         item.setOrder(this);
     }
 
+    private String paymentKey;
+
+    private String paymentMethod;
+
+    private LocalDateTime paidAt;
+
 }

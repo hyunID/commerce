@@ -7,6 +7,7 @@ import com.project.commerce.order.entity.Order;
 import com.project.commerce.order.service.OrderService;
 import com.project.commerce.payment.dto.PaymentConfirmDTO;
 import com.project.commerce.payment.dto.PaymentFailDTO;
+import com.project.commerce.payment.dto.PaymentCancelDTO;
 import com.project.commerce.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -89,4 +90,11 @@ public class PaymentController {
 
         return ApiResponse.success(null);
     }
+
+    @PostMapping("/cancel")
+    public ApiResponse<?> cancel(@RequestBody PaymentCancelDTO dto) {
+        paymentService.cancel(dto);
+        return ApiResponse.success(null);
+    }
+
 }

@@ -300,6 +300,7 @@ public class OrderService {
                 .totalPrice(order.getTotalPrice())
                 .status(order.getStatus())
                 .createdAt(order.getCreatedAt())
+                .paymentKey(order.getPaymentKey())
                 .items(order.getItems().stream()
                         .map(i -> OrderResponseDTO.Item.builder()
                                 .productId(i.getProduct().getId())

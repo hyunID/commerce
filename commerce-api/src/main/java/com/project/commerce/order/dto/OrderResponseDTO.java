@@ -14,7 +14,7 @@ public class OrderResponseDTO {
     private int totalPrice;
     private String status;
     private LocalDateTime createdAt;
-
+    private String paymentKey;
     private List<Item> items;
 
     @Getter

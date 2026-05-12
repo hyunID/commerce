@@ -139,6 +139,26 @@ public class InventoryService {
         updateProductStatus(inv);
     }
 
+
+    @Transactional
+    public void cancelConfirm(Long productId, int qty) {
+
+        Inventory inv = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("재고 없음"));
+
+
+        System.out.println("--------------------결재 취소--------------------");
+        System.out.println("productId="+ productId);
+        System.out.println(inv.getStock());
+        System.out.println(qty);
+
+        // PAID 상태 rollback = stock 복구
+        inv.setStock(inv.getStock() + qty);
+
+        updateProductStatus(inv);
+    }
+
+
     // 관리자 수정
     @Transactional
     public void adjust(Long productId, InventoryAdjustDTO dto) {

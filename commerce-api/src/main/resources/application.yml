@@ -5,11 +5,16 @@ spring:
   profiles:
     active: postgres
 
+
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: true
 
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
@@ -17,9 +22,6 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
-
-
-
 
 logging:
   level:
@@ -31,3 +33,4 @@ logging:
 
 file:
   upload-dir: D:/dev/product-images/
+

@@ -6,6 +6,12 @@ export const getProducts = async () => {
     return res.data;
 };
 
+// 상품 상세 조회 추가
+export const getProductDetail = async (id) => {
+    const res = await api.get(`/products/${id}`);
+    return res.data;
+};
+
 // 관리자용 상품 목록 (삭제 포함)
 export const getAdminProducts = async () => {
     const res = await api.get("/products/admin");

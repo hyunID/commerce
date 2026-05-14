@@ -15,7 +15,7 @@ function AdminModal({ onClose, onProductChange }) {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white w-[900px] h-[600px] rounded-xl flex overflow-hidden">
+            <div className="bg-white w-[1200px] h-[750px] rounded-2xl flex overflow-hidden shadow-2xl">
 
                 {/* 좌측 메뉴 */}
                 <div className="w-56 bg-gray-800 text-white p-4">
@@ -24,7 +24,8 @@ function AdminModal({ onClose, onProductChange }) {
                     <ul className="space-y-3">
                         <li onClick={() => setMenu("product")} className="cursor-pointer">상품 관리</li>
                         <li onClick={() => setMenu("order")} className="cursor-pointer">주문 관리</li>
-                        <li onClick={() => setMenu("inventory")} className="cursor-pointer">재고 관리</li> {/* ✅ */}
+                        <li onClick={() => setMenu("inventory")} className="cursor-pointer">재고 관리</li>
+                        {/* ✅ */}
                         <li className="cursor-pointer">회원 관리</li>
                     </ul>
                 </div>
@@ -42,13 +43,13 @@ function AdminModal({ onClose, onProductChange }) {
 
                     {menu === "product" && (
                         <>
-                            <ProductForm onSuccess={handleRefresh} />
-                            <ProductList key={refreshKey} onChange={handleRefresh} />
+                            <ProductForm onSuccess={handleRefresh}/>
+                            <ProductList key={refreshKey} onChange={handleRefresh}/>
                         </>
                     )}
 
-                    {menu === "order" && <OrderList />}
-                    {menu === "inventory" && <InventoryList />} {/* ✅ */}
+                    {menu === "order" && <OrderList/>}
+                    {menu === "inventory" && <InventoryList/>} {/* ✅ */}
                 </div>
             </div>
         </div>

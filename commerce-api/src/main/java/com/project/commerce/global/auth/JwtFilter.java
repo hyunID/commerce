@@ -18,22 +18,27 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        //CORS 헤더 추가
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "*");
+
         String method = request.getMethod();
 
-        //  preflight 통과
+        // preflight
         if ("OPTIONS".equalsIgnoreCase(method)) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_OK);
             return;
         }
 
-        // 공개 API (토큰 없이 허용)
+        String path = request.getRequestURI();
+
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        //  토큰 검사
         String header = request.getHeader("Authorization");
 
         if (!StringUtils.hasText(header) || !header.startsWith("Bearer ")) {
@@ -50,24 +55,25 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        //  사용자 정보 세팅
         String email = JwtUtil.getEmail(token);
         String role = JwtUtil.getRole(token);
         Long userId = JwtUtil.getUserId(token);
 
         request.setAttribute("userEmail", email);
         request.setAttribute("userRole", role);
-        request.setAttribute("userId",userId );
+        request.setAttribute("userId", userId);
 
-        // 통과
         filterChain.doFilter(request, response);
     }
+
 
     //  공개 경로만 따로 관리
     private boolean isPublicPath(String path) {
         return path.startsWith("/users/login")
                 || path.equals("/users")
                 || path.startsWith("/images/")
-                || path.startsWith("/h2-console");
+                || path.startsWith("/h2-console")
+                || path.startsWith("/products");// 메인페이지 공개되며 상품 노출이 우선...
     }
+
 }

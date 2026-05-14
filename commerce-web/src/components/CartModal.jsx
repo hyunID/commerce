@@ -34,6 +34,11 @@ function CartModal({ onClose }) {
 
         const data = res.data;
 
+        if (!data || !data.items) {
+            setCart({ items: [] });
+            return;
+        }
+
         setCart(data);
 
         const qtyMap = {};
@@ -310,119 +315,116 @@ function CartModal({ onClose }) {
     if (!cart) return null;
 
     return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50">
 
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+            <div className="bg-white w-[780px] max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
-            <div className="bg-white p-6 w-[700px] rounded">
+                {/* 헤더 */}
+                <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                    <h2 className="text-lg font-bold">🛒 장바구니</h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-black text-xl">✕</button>
+                </div>
 
-                <h2 className="text-xl mb-4">
-                    🛒 장바구니
-                </h2>
+                {/* 리스트 영역 */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-4">
 
-                {cart.items.length === 0 && (
-                    <p>비어있음</p>
-                )}
-
-                {cart.items.map(item => (
-
-                    <div
-                        key={item.cartItemId}
-                        className="flex justify-between mb-3"
-                    >
-
-                        <div>
-                            {item.productName}
-                            (₩{item.price})
+                    {cart.items.length === 0 && (
+                        <div className="text-center text-gray-400 py-10">
+                            장바구니가 비어있습니다
                         </div>
+                    )}
 
-                        <div className="flex gap-2 items-center">
+                    {cart.items.map(item => (
+                        <div
+                            key={item.cartItemId}
+                            className="flex items-center justify-between border rounded-xl p-4 shadow-sm hover:shadow-md transition"
+                        >
 
-                            <input
-                                type="number"
-                                disabled={isPaymentPending}
-                                value={
-                                    quantities[item.cartItemId] || 0
-                                }
-                                onChange={(e) =>
-                                    handleChange(
-                                        item.cartItemId,
-                                        e.target.value
-                                    )
-                                }
-                                className="w-16 border"
-                            />
+                            {/* 상품 정보 */}
+                            <div>
+                                <p className="font-semibold text-gray-800">
+                                    {item.productName}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                    ₩{item.price}
+                                </p>
+                            </div>
 
-                            <button
-                                disabled={isPaymentPending}
-                                onClick={() =>
-                                    handleUpdate(item.cartItemId)
-                                }
-                                className="bg-blue-500 text-white px-2 py-1 rounded"
-                            >
-                                저장
-                            </button>
+                            {/* 수량 영역 */}
+                            <div className="flex items-center gap-2">
 
-                            <button
-                                disabled={isPaymentPending}
-                                onClick={() =>
-                                    handleDelete(item.cartItemId)
-                                }
-                            >
-                                ❌
-                            </button>
+                                <input
+                                    type="number"
+                                    disabled={isPaymentPending}
+                                    value={quantities[item.cartItemId] || 0}
+                                    onChange={(e) =>
+                                        handleChange(item.cartItemId, e.target.value)
+                                    }
+                                    className="w-16 border rounded-md px-2 py-1 text-center"
+                                />
+
+                                <button
+                                    disabled={isPaymentPending}
+                                    onClick={() => handleUpdate(item.cartItemId)}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+                                >
+                                    저장
+                                </button>
+
+                                <button
+                                    disabled={isPaymentPending}
+                                    onClick={() => handleDelete(item.cartItemId)}
+                                    className="text-red-500 hover:text-red-700 text-lg px-2"
+                                >
+                                    ✕
+                                </button>
+                            </div>
 
                         </div>
+                    ))}
+                </div>
+
+                {/* 결제 영역 (하단 고정 느낌) */}
+                <div className="border-t p-5 bg-white space-y-3">
+
+                    {!paymentInfo && (
+                        <button
+                            onClick={handleOrder}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold"
+                        >
+                            결제하기
+                        </button>
+                    )}
+
+                    <div id="payment-method"></div>
+                    <div id="agreement"></div>
+
+                    {paymentInfo && (
+                        <button
+                            onClick={handlePayment}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold"
+                        >
+                            실제 결제 진행
+                        </button>
+                    )}
+
+                    <div className="flex gap-2">
+                        <button
+                            disabled={isPaymentPending}
+                            onClick={handleClear}
+                            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg"
+                        >
+                            전체 삭제
+                        </button>
+
+                        <button
+                            onClick={onClose}
+                            className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg"
+                        >
+                            닫기
+                        </button>
                     </div>
-                ))}
-
-                {/* 주문 생성 */}
-                {!paymentInfo && (
-
-                    <button
-                        onClick={handleOrder}
-                        className="mt-3 bg-indigo-600 text-white px-3 py-1"
-                    >
-                        결제하기
-                    </button>
-                )}
-
-                {/* 토스 위젯 */}
-                <div
-                    id="payment-method"
-                    className="mt-5"
-                ></div>
-
-                {/* 약관 */}
-                <div
-                    id="agreement"
-                    className="mt-3"
-                ></div>
-
-                {/* 실제 결제 버튼 */}
-                {paymentInfo && (
-
-                    <button
-                        onClick={handlePayment}
-                        className="w-full bg-green-600 text-white p-2 rounded mt-5"
-                    >
-                        실제 결제 진행
-                    </button>
-                )}
-
-                <button
-                    disabled={isPaymentPending}
-                    onClick={handleClear}
-                    className="mt-3 ml-2 bg-red-500 text-white px-3 py-1"
-                >
-                    전체 삭제
-                </button>
-
-                <button
-                    onClick={onClose}
-                    className="ml-3"
-                >
-                    닫기
-                </button>
+                </div>
 
             </div>
         </div>

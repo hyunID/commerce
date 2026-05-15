@@ -159,4 +159,21 @@ public class CartService {
 
         cart.getItems().clear();
     }
+
+    @Transactional(readOnly = true)
+    public int getCartCount(Long userId) {
+
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElse(null);
+
+        if (cart == null || cart.getItems() == null) {
+            return 0;
+        }
+
+        //  총 수량 기준 (예: 2개 + 3개 = 5)
+        return cart.getItems()
+                .stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+    }
 }

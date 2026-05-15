@@ -56,4 +56,12 @@ public class CartController {
         cartService.clear(userId);
         return ApiResponse.success(null);
     }
+
+    // 장바구니 개수 (총 수량)
+    @GetMapping("/count")
+    public ApiResponse<?> getCount(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        return ApiResponse.success(cartService.getCartCount(userId));
+    }
+
 }

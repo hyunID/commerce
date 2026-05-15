@@ -29,3 +29,9 @@ export const clearCart = async () => {
     const res = await api.delete("/cart/clear");
     return res.data;
 };
+
+// 장바구니 총 개수 (수량 합)
+export const getCartCount = async () => {
+    const res = await api.get("/cart/count");
+    return res.data;
+};

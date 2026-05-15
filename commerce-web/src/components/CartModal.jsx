@@ -8,7 +8,7 @@ import {
 import { requestCartPayment } from "../api/payment";
 import { getOrderStatus } from "../api/order";
 
-function CartModal({ onClose }) {
+function CartModal({ onClose, onCartChange }) {
 
     const [cart, setCart] = useState(null);
 
@@ -117,6 +117,8 @@ function CartModal({ onClose }) {
         alert("수정되었습니다.");
 
         fetchCart();
+
+        onCartChange?.();
     };
 
     // 삭제
@@ -133,6 +135,8 @@ function CartModal({ onClose }) {
         alert("삭제되었습니다.");
 
         fetchCart();
+
+        onCartChange?.();
     };
 
     // 전체 삭제
@@ -149,6 +153,8 @@ function CartModal({ onClose }) {
         alert("전체 삭제되었습니다.");
 
         fetchCart();
+
+        onCartChange?.();
     };
 
     // 주문 상태 polling

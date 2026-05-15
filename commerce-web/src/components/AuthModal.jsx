@@ -12,6 +12,10 @@ function AuthModal({ onClose, onLoginSuccess }) {
     // signup state
     const [name, setName] = useState("");
 
+    const isValidEmail = (email) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
     // 로그인
     const handleLogin = async () => {
         try {
@@ -26,9 +30,20 @@ function AuthModal({ onClose, onLoginSuccess }) {
 
     // 회원가입
     const handleSignup = async () => {
+
+        if (!isValidEmail(email)) {
+            alert("이메일 형식이 올바르지 않습니다.");
+            return;
+        }
+
         try {
             await signup({ email, password, name });
             alert("회원가입 성공");
+
+            setEmail("");
+            setPassword("");
+            setName("");
+
             setTab("login"); // 가입 후 로그인으로 전환
         } catch {
             alert("회원가입 실패");

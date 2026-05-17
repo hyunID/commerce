@@ -12,6 +12,7 @@ import com.project.commerce.order.entity.OrderItem;
 import com.project.commerce.product.entity.Product;
 import com.project.commerce.repository.OrderRepository;
 import com.project.commerce.repository.ProductRepository;
+import com.project.commerce.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,10 @@ public class OrderService {
 
         Order order = new Order();
 
-        order.setUserId(userId);
+        User user = new User();
+        user.setId(userId);
+
+        order.setUser(user);
 
         // 결제 대기 상태
         order.setStatus("PENDING");
@@ -59,30 +63,6 @@ public class OrderService {
 
             Product product = item.getProduct();
 
-            /*
-             =========================================================
-              기존 방식
-              주문 생성 시 reserve + confirm 둘 다 수행
-
-              문제:
-              결제 전인데 실제 재고가 차감됨
-             =========================================================
-            */
-
-            /*
-            inventoryService.reserve(product.getId(), item.getQuantity());
-            inventoryService.confirm(product.getId(), item.getQuantity());
-            */
-
-            /*
-             =========================================================
-              변경 방식
-              reserve만 수행
-
-              실제 재고 차감(confirm)은
-              결제 성공 시 PaymentService.confirm() 에서 수행
-             =========================================================
-            */
             inventoryService.reserve(
                     product.getId(),
                     item.getQuantity()
@@ -135,7 +115,11 @@ public class OrderService {
 
         Order order = new Order();
 
-        order.setUserId(userId);
+        User user = new User();
+        user.setId(userId);
+
+        order.setUser(user);
+
 
         // 결제 대기 상태
         order.setStatus("PENDING");
@@ -203,7 +187,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문 없음"));
 
-        if (!order.getUserId().equals(userId)) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new RuntimeException("권한 없음");
         }
 
@@ -269,7 +253,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow();
 
-        if (!order.getUserId().equals(userId)) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new RuntimeException("권한 없음");
         }
 
@@ -303,8 +287,10 @@ public class OrderService {
                 .paymentKey(order.getPaymentKey())
                 .items(order.getItems().stream()
                         .map(i -> OrderResponseDTO.Item.builder()
+                                .orderItemId(i.getId())
                                 .productId(i.getProduct().getId())
                                 .productName(i.getProduct().getName())
+                                .imageUrl(i.getProduct().getImageUrl())
                                 .price(i.getPrice())
                                 .quantity(i.getQuantity())
                                 .build())

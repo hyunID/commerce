@@ -1,5 +1,6 @@
 package com.project.commerce.order.entity;
 
+import com.project.commerce.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
+    //private Long userId;
 
     private int totalPrice;
 
@@ -38,5 +39,9 @@ public class Order {
     private String paymentMethod;
 
     private LocalDateTime paidAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

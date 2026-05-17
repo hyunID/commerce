@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-// ❌ 기존 주문 취소 API 제거
-// import { cancelOrder } from "../api/order";
-
-//  결제 취소 API 사용
- import {
-     getMyOrders,
-     cancelPayment
- } from "../api/order";
+import { getMyOrders, cancelPayment } from "../api/order";
+import { getReviewPermission } from "../api/review";
+import { getOrderItemReviewStatus } from "../api/review";
 
 function OrderModal({ onClose }) {
 
+    const navigate = useNavigate();
+
     const [orders, setOrders] = useState([]);
+
+    // productId -> 리뷰 가능 여부
+    const [reviewStatusMap, setReviewStatusMap] = useState({});
 
     // 주문 조회
     const fetchOrders = async () => {
@@ -20,31 +21,80 @@ function OrderModal({ onClose }) {
 
             const res = await getMyOrders();
 
-            //  FAILED 제외
-            // 화면에는
-            // PAID / CANCELLED 만 표시
             const filtered =
                 (res.data.data || []).filter(order =>
-                    order.status === "PAID"
-                    || order.status === "CANCELLED"
+                    order.status === "PAID" ||
+                    order.status === "CANCELLED"
                 );
 
             setOrders(filtered);
 
-        } catch (e) {
+            // =========================
+            // 리뷰 상태 조회
+            // =========================
 
+            const map = {};
+
+            for (const order of filtered) {
+
+                for (const item of order.items || []) {
+
+                    try {
+                        const statusRes =
+                            await getOrderItemReviewStatus(item.orderItemId);
+
+                        const status =
+                            statusRes.data;
+
+                        console.log("--------------------------");
+                        console.log(item);
+                        console.log(item.id);
+
+                        map[item.orderItemId] = {
+                            canWrite: status.canWrite,
+                            reviewed: status.reviewed
+                        };
+
+                        // const permissionRes =
+                        //     await getReviewPermission(item.productId);
+                        //
+                        // const permission =
+                        //     permissionRes.data
+                        // ;
+                        //
+                        // map[item.productId] = {
+                        //
+                        //     canWrite: permission.canWrite,
+                        //
+                        //     reviewed:
+                        //         !permission.canWrite &&
+                        //         permission.myReview != null
+                        // };
+
+                    } catch (e) {
+
+                        console.error(e);
+
+                        map[item.orderItemId] = {
+                            canWrite: false,
+                            reviewed: false
+                        };
+                    }
+                }
+            }
+
+            setReviewStatusMap(map);
+
+        } catch (e) {
             console.error(e);
         }
     };
 
     useEffect(() => {
-
         fetchOrders();
-
     }, []);
 
-
-    // 현재는 결제 취소 기능 사용
+    // 결제 취소
     const handleCancelPayment = async (order) => {
 
         if (!window.confirm("결제를 취소하시겠습니까?")) {
@@ -52,10 +102,7 @@ function OrderModal({ onClose }) {
         }
 
         try {
-            console.log(order);
-            console.log(order.id);
-            console.log(order.paymentKey);
-            // 결제 취소 API 호출
+
             await cancelPayment(order.paymentKey);
 
             alert("결제 취소 완료");
@@ -70,15 +117,26 @@ function OrderModal({ onClose }) {
         }
     };
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50">
+    // 상품 상세 이동
+    const moveProductPage = (productId) => {
 
-            <div className="bg-white w-[800px] max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        navigate(`/product/${productId}`);
+
+        onClose?.();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+
+            <div className="bg-white w-[800px] max-h-[85vh] rounded-2xl overflow-hidden flex flex-col">
 
                 {/* 헤더 */}
                 <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
                     <h2 className="text-lg font-bold">📦 주문 내역</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-black text-xl">✕</button>
+
+                    <button onClick={onClose}>
+                        ✕
+                    </button>
                 </div>
 
                 {/* 리스트 */}
@@ -91,39 +149,68 @@ function OrderModal({ onClose }) {
                     )}
 
                     {orders.map(order => (
+
                         <div
                             key={order.id}
-                            className="border rounded-xl p-5 shadow-sm hover:shadow-md transition bg-white"
+                            className="border rounded-xl p-5"
                         >
 
-                            {/* 상단 */}
-                            <div className="flex justify-between items-start">
+                            {/* 주문 정보 */}
+                            <div className="flex justify-between">
 
-                                <div className="space-y-1">
-                                    <p className="text-sm text-gray-500">
-                                        주문번호
+                                <div>
+                                    <p>주문번호: {order.id}</p>
+
+                                    {order.status === "PAID" ? (
+
+                                        <span
+                                            className="
+                                                text-xs
+                                                px-2 py-1
+                                                rounded-full
+                                                bg-green-100
+                                                text-green-700
+                                                font-medium
+                                            "
+                                        >
+                                            결제 완료
+                                        </span>
+
+                                    ) : (
+
+                                        <span
+                                            className="
+                                                text-xs
+                                                px-2 py-1
+                                                rounded-full
+                                                bg-red-100
+                                                text-red-600
+                                                font-medium
+                                            "
+                                        >
+                                            결제 취소
+                                        </span>
+
+                                    )}
+                                </div>
+
+                                <div>
+                                    <p>
+                                        총액: ₩{order.totalPrice}
                                     </p>
-                                    <p className="font-semibold">{order.id}</p>
-
-                                    <p className="mt-2 text-gray-700">
-                                        총 금액: <span className="font-bold">₩{order.totalPrice}</span>
-                                    </p>
-
-                                    <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold
-                                    ${order.status === "PAID"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-gray-200 text-gray-600"
-                                    }
-                                `}>
-                                    {order.status === "PAID" && "결제 완료"}
-                                        {order.status === "CANCELLED" && "결제 취소"}
-                                </span>
                                 </div>
 
                                 {order.status === "PAID" && (
                                     <button
                                         onClick={() => handleCancelPayment(order)}
-                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                                        className="
+                                            bg-red-500
+                                            text-white
+                                            px-3
+                                            py-1
+                                            rounded
+                                            hover:bg-red-600
+                                        "
                                     >
                                         결제 취소
                                     </button>
@@ -132,18 +219,145 @@ function OrderModal({ onClose }) {
                             </div>
 
                             {/* 상품 리스트 */}
-                            <div className="mt-4 border-t pt-3 space-y-1">
-                                {order.items.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="flex justify-between text-sm text-gray-600"
-                                    >
-                                        <span>{item.productName}</span>
-                                        <span>
-                                        {item.quantity}개 · ₩{item.price}
-                                    </span>
-                                    </div>
-                                ))}
+                            <div className="mt-4 space-y-3">
+
+                                {order.items?.map((item) => {
+
+                                    const status =
+                                        reviewStatusMap[item.orderItemId];
+
+                                    const isReviewed =
+                                        status?.reviewed;
+
+                                    const canWrite =
+                                        status?.canWrite;
+
+                                    return (
+
+                                        <div
+                                            key={`${order.id}-${item.productId}`}
+
+                                            onClick={() =>
+                                                moveProductPage(item.productId)
+                                            }
+
+                                            className="
+                                                group
+                                                flex
+                                                justify-between
+                                                items-center
+                                                p-3
+                                                rounded-xl
+                                                cursor-pointer
+                                                border
+                                                border-transparent
+                                                hover:border-black
+                                                hover:bg-gray-50
+                                                transition-all
+                                                duration-200
+                                            "
+                                        >
+
+                                            {/* 상품 정보 */}
+                                            <div className="flex items-center gap-4">
+
+                                                {/* 상품 이미지 */}
+                                                <img
+                                                    src={`http://localhost:8081/images/${item.imageUrl}`}
+                                                    alt={item.productName}
+                                                    className="
+                                                        w-16 h-16
+                                                        object-cover
+                                                        rounded-lg
+                                                        border
+                                                        shrink-0
+                                                    "
+                                                />
+
+                                                {/* 텍스트 */}
+                                                <div>
+
+                                                    <p className="
+                                                        font-medium
+                                                        group-hover:underline
+                                                    ">
+                                                        {item.productName}
+                                                    </p>
+
+                                                    <p className="text-sm text-gray-500 mt-1">
+                                                        {item.quantity}개 · ₩{item.price}
+                                                    </p>
+
+                                                    <p className="
+                                                            text-xs
+                                                            text-gray-400
+                                                            mt-1
+                                                            opacity-0
+                                                            group-hover:opacity-100
+                                                            transition
+                                                    ">
+                                                        클릭하여 상품 상세 보기
+                                                    </p>
+
+                                                </div>
+
+                                            </div>
+
+                                            {/* 리뷰 상태 */}
+                                            {order.status === "PAID" && (
+
+                                                isReviewed ? (
+
+                                                    <span
+                                                        className="
+                                                            text-xs
+                                                            px-3
+                                                            py-1
+                                                            rounded-full
+                                                            bg-gray-200
+                                                            text-gray-700
+                                                        "
+                                                    >
+                                                        리뷰 완료
+                                                    </span>
+
+                                                ) : canWrite ? (
+
+                                                    <span
+                                                        className="
+                                                            text-xs
+                                                            px-3
+                                                            py-1
+                                                            rounded-full
+                                                            bg-indigo-100
+                                                            text-indigo-600
+                                                        "
+                                                    >
+                                                        리뷰 작성 가능
+                                                    </span>
+
+                                                ) : (
+
+                                                    <span
+                                                        className="
+                                                            text-xs
+                                                            px-3
+                                                            py-1
+                                                            rounded-full
+                                                            bg-gray-100
+                                                            text-gray-400
+                                                        "
+                                                    >
+                                                        리뷰 불가
+                                                    </span>
+
+                                                )
+                                            )}
+
+                                        </div>
+                                    );
+                                })}
+
                             </div>
 
                         </div>
@@ -152,6 +366,7 @@ function OrderModal({ onClose }) {
                 </div>
 
             </div>
+
         </div>
     );
 }

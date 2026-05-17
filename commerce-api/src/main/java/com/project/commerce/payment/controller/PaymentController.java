@@ -56,13 +56,13 @@ public class PaymentController {
         System.out.println("----------requestCartPayment start----------");
         Long userId = jwtUtil.getUserId(token);
 
-        Order order = orderService.createOrderFromCart(userId); // 수정 필요
+        Order order = orderService.createOrderFromCart(userId);
 
         System.out.println("----------requestCartPayment order----------");
         System.out.println(order);
 
         return ApiResponse.success(Map.of(
-                "orderId", "ORDER_"+order.getId().toString(),
+                "orderId", "ORDER_"+order.getId().toString() + "_" + System.currentTimeMillis(),
                 "amount", order.getTotalPrice(),
                 "orderName", "장바구니 결제"
         ));

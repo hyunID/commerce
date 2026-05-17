@@ -20,8 +20,13 @@ public class OrderResponseDTO {
     @Getter
     @Builder
     public static class Item {
+
+        private Long orderItemId;
+
         private Long productId;
         private String productName;
+        private String imageUrl;
+
         private int price;
         private int quantity;
     }

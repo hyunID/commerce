@@ -7,6 +7,15 @@ import { addToCart } from "../api/cart";
 import { getOrderStatus } from "../api/order";
 import { requestPayment } from "../api/payment";
 
+import {
+    createReview,
+    updateReview,
+    deleteReview,
+    getProductReviews,
+    getReviewPermission
+
+} from "../api/review";
+
 function ProductDetailPage() {
 
     const { id } = useParams();
@@ -27,6 +36,22 @@ function ProductDetailPage() {
 
     const isPaymentPending = !!paymentInfo;
 
+    const [reviews, setReviews] = useState([]);
+
+    //const [reviewedSet, setReviewedSet] = useState(new Set());
+
+    //const [orderItemId, setOrderItemId] = useState(null);
+
+    const [reviewText, setReviewText] = useState("");
+
+    const [rating, setRating] = useState(3);//별점 기본값3 셋팅
+
+    const [editId, setEditId] = useState(null);
+
+    const [editRating, setEditRating] = useState(3);
+
+    const [reviewPermission, setReviewPermission] = useState(null);
+
     // 상품 조회
     useEffect(() => {
 
@@ -46,7 +71,7 @@ function ProductDetailPage() {
                 );
 
             } catch (err) {
-
+                alert(err);
                 console.error(err);
 
                 alert("상품 조회 실패");
@@ -95,6 +120,131 @@ function ProductDetailPage() {
         };
 
     }, []);
+
+    /*useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const oid = params.get("orderItemId");
+
+        if (oid) {
+            setOrderItemId(Number(oid));
+        }
+    }, []);*/
+
+
+    const fetchReviewPermission = async () => {
+
+        try {
+
+            const res =
+                await getReviewPermission(id);
+
+            setReviewPermission(res.data);
+
+        } catch (e) {
+
+            console.error(e);
+        }
+    };
+
+
+    const fetchReviews = async () => {
+        try {
+            const res = await getProductReviews(id);
+
+            const list = res.data || [];
+
+            //setReviews(list);
+
+            // 이미 리뷰한 orderItemId Set 생성
+            /*const reviewed = new Set(
+                list.map(r => r.orderItemId)
+            );*/
+
+            setReviews(list);
+
+        } catch (e) {
+
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        fetchReviews();
+        fetchReviewPermission();
+
+    }, [id]);
+
+    const handleCreateReview = async () => {
+
+        try {
+
+            if (!reviewPermission?.canWrite) {
+
+                alert(
+                    reviewPermission?.message ||
+                    "리뷰 작성 권한이 없습니다."
+                );
+
+                return;
+            }
+
+            await createReview(product.id, {
+
+                rating,
+                content: reviewText
+            });
+
+            alert("리뷰 작성 완료");
+
+            setReviewText("");
+
+            setRating(3);
+
+            fetchReviews();
+
+            fetchReviewPermission();
+
+        } catch (e) {
+
+            console.error(e);
+
+            alert("리뷰 실패");
+        }
+    };
+
+    const handleUpdateReview = async (reviewId) => {
+        try {
+            await updateReview(reviewId, {
+                content: reviewText,
+                rating: editRating
+            });
+
+            alert("리뷰 수정 완료");
+
+            setEditId(null);
+            setReviewText("");
+            setEditRating(3);
+
+            fetchReviews();
+            fetchReviewPermission();
+
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId) => {
+        try {
+            await deleteReview(reviewId);
+
+            alert("삭제 완료");
+            fetchReviews();
+            fetchReviewPermission();
+
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const changeQty = (delta) => {
 
@@ -509,53 +659,197 @@ function ProductDetailPage() {
                         {/* 리뷰 영역 */}
                         <div className="mt-20">
 
-                            <h2 className="text-xl font-bold mb-6">
-                                REVIEW
-                            </h2>
+                            <h2 className="text-xl font-bold mb-6">REVIEW</h2>
 
-                            {/* 추후 실제 API 연결 */}
+                            {/*  리뷰 작성 영역 (구매자만) */}
+                            <div className="border p-4 mb-6 rounded-xl">
+
+                                {/* 권한 안내 */}
+                                <div className="mb-3 text-sm">
+
+                                    {reviewPermission?.canWrite ? (
+
+                                        <p className="text-indigo-600 font-medium">
+
+                                            {reviewPermission?.lastPurchasedAt &&
+                                                `${new Date(
+                                                    reviewPermission.lastPurchasedAt
+                                                ).toLocaleDateString()} 구매한 상품에 대한 리뷰입니다.`}
+
+                                        </p>
+
+                                    ) : (
+
+                                        <p className="text-gray-400">
+
+                                            {reviewPermission?.message ||
+                                                "상품 구매 이력이 없습니다."}
+
+                                        </p>
+
+                                    )}
+                                </div>
+
+                                {/* 별점 */}
+                                <div
+                                    className={`
+                                        flex gap-1 text-2xl mb-3
+                                        ${reviewPermission?.canWrite
+                                        ? "cursor-pointer"
+                                        : "opacity-40 pointer-events-none"}
+                                    `}
+                                >
+
+                                    {[1,2,3,4,5].map((star) => (
+
+                                        <span
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            className={
+                                                star <= rating
+                                                    ? "text-yellow-400"
+                                                    : "text-gray-300"
+                                            }
+                                        >
+                                            ★
+                                        </span>
+                                    ))}
+
+                                </div>
+
+                                {/* textarea */}
+                                <textarea
+
+                                    disabled={!reviewPermission?.canWrite}
+
+                                    className={`
+                                        w-full border p-3 rounded resize-none
+                                        ${reviewPermission?.canWrite
+                                        ? "bg-white"
+                                        : "bg-gray-100 text-gray-400"}
+                                    `}
+
+                                    rows={4}
+
+                                    placeholder={
+                                        reviewPermission?.canWrite
+                                            ? "리뷰를 작성해주세요."
+                                            : "상품 구매 이력이 없습니다."
+                                    }
+
+                                    value={reviewText}
+
+                                    onChange={(e) =>
+                                        setReviewText(e.target.value)
+                                    }
+                                />
+
+                                {/* 버튼 */}
+                                <button
+
+                                    disabled={!reviewPermission?.canWrite}
+
+                                    onClick={handleCreateReview}
+
+                                    className={`
+                                        px-4 py-2 mt-3 rounded text-white
+                                        ${reviewPermission?.canWrite
+                                        ? "bg-black hover:bg-gray-800"
+                                        : "bg-gray-400 cursor-not-allowed"}
+                                    `}
+                                >
+                                    리뷰 작성
+                                </button>
+
+                            </div>
+
+                            {/* 리뷰 리스트 */}
                             <div className="space-y-4">
+                                {reviews.map((r) => (
+                                    <div key={r.id} className="border p-4">
 
-                                <div className="border rounded p-4">
+                                        {/* 작성자 + 별점 */}
+                                        <div className="flex justify-between items-center">
 
-                                    <div className="flex justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold">
+                                                    {r.writer}
+                                                </span>
 
-                                        <span className="font-semibold">
-                                            user1
-                                        </span>
+                                                {/* 별점 표시 */}
+                                                <span className="text-yellow-400 text-sm">
+                                                     {"★".repeat(r.rating)}
+                                                    {"☆".repeat(5 - r.rating)}
+                                                 </span>
+                                            </div>
+                                            {r.mine && (
+                                                <div className="space-x-2">
 
-                                        <span className="text-sm text-gray-400">
-                                            2026-05-14
-                                        </span>
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditId(r.id);
+                                                            setReviewText(r.content);
+                                                            setEditRating(r.rating);
+                                                        }}
+                                                        className="text-blue-500"
+                                                    >
+                                                        수정
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDeleteReview(r.id)}
+                                                        className="text-red-500"
+                                                    >
+                                                        삭제
+                                                    </button>
+
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {editId === r.id ? (
+                                            <div className="mt-2">
+
+                                                {/* 별점 수정 */}
+                                                <div className="flex gap-1 text-2xl cursor-pointer mb-2">
+                                                    {[1,2,3,4,5].map((star) => (
+                                                        <span
+                                                            key={star}
+                                                            onClick={() => setEditRating(star)}
+                                                            className={
+                                                                star <= editRating
+                                                                    ? "text-yellow-400"
+                                                                    : "text-gray-300"
+                                                            }
+                                                        >
+                                                            ★
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                {/* 내용 수정 */}
+                                                <textarea
+                                                    value={reviewText}
+                                                    onChange={(e) => setReviewText(e.target.value)}
+                                                    className="w-full border p-2"
+                                                />
+
+                                                <button
+                                                    onClick={() => handleUpdateReview(r.id)}
+                                                    className="bg-blue-500 text-white px-3 py-1 mt-2"
+                                                >
+                                                    수정 완료
+                                                </button>
+
+                                            </div>
+                                        ) : (
+                                            <p className="mt-2 text-gray-700">
+                                                {r.content}
+                                            </p>
+                                        )}
 
                                     </div>
-
-                                    <p className="mt-3 text-gray-700">
-                                        핏이 좋고 재질이 괜찮습니다.
-                                    </p>
-
-                                </div>
-
-                                <div className="border rounded p-4">
-
-                                    <div className="flex justify-between">
-
-                                        <span className="font-semibold">
-                                            user2
-                                        </span>
-
-                                        <span className="text-sm text-gray-400">
-                                            2026-05-10
-                                        </span>
-
-                                    </div>
-
-                                    <p className="mt-3 text-gray-700">
-                                        배송 빨라요.
-                                    </p>
-
-                                </div>
-
+                                ))}
                             </div>
 
                         </div>

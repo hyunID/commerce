@@ -34,6 +34,9 @@ function ProductList({ onChange }) {
 
     const [selectedImage, setSelectedImage] = useState("");
 
+    const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8081";
+
     const fetchProducts = async () => {
 
         const res = await getAdminProducts();
@@ -219,7 +222,7 @@ function ProductList({ onChange }) {
                             >
 
                                 <img
-                                    src={`http://localhost:8081/images/${p.imageUrl}`}
+                                    src={`${API_BASE_URL}/images/${p.imageUrl}`}
                                     className="
                                         h-40
                                         w-full
@@ -422,7 +425,7 @@ function ProductList({ onChange }) {
                                                 src={
                                                     selectedImage
                                                     || previewMain
-                                                    || `http://localhost:8081/images/${p.imageUrl}`
+                                                    || `${API_BASE_URL}/images/${p.imageUrl}`
                                                 }
                                                 className="
                                                     w-full
@@ -449,13 +452,13 @@ function ProductList({ onChange }) {
                                                 src={
                                                     previewMain
                                                         ? previewMain
-                                                        : `http://localhost:8081/images/${p.imageUrl}`
+                                                        : `${API_BASE_URL}/images/${p.imageUrl}`
                                                 }
                                                 onClick={() =>
                                                     setSelectedImage(
                                                         previewMain
                                                             ? previewMain
-                                                            : `http://localhost:8081/images/${p.imageUrl}`
+                                                            : `${API_BASE_URL}/images/${p.imageUrl}`
                                                     )
                                                 }
                                                 className="
@@ -475,10 +478,10 @@ function ProductList({ onChange }) {
 
                                                     <img
                                                         key={idx}
-                                                        src={`http://localhost:8081/images/${img}`}
+                                                        src={`${API_BASE_URL}/images/${img}`}
                                                         onClick={() =>
                                                             setSelectedImage(
-                                                                `http://localhost:8081/images/${img}`
+                                                                `${API_BASE_URL}/images/${img}`
                                                             )
                                                         }
                                                         className="
@@ -572,11 +575,11 @@ function ProductList({ onChange }) {
                                                 // ProductForm 동일 처리
                                                 // =========================
                                                 setPreviewMain(
-                                                    `http://localhost:8081/images/${p.imageUrl}`
+                                                    `${API_BASE_URL}/images/${p.imageUrl}`
                                                 );
 
                                                 setSelectedImage(
-                                                    `http://localhost:8081/images/${p.imageUrl}`
+                                                    `${API_BASE_URL}/images/${p.imageUrl}`
                                                 );
 
                                                 setPreviewSubs([]);
@@ -671,7 +674,7 @@ function ProductList({ onChange }) {
                                 <img
                                     src={
                                         preview.selectedPreviewImage
-                                        || `http://localhost:8081/images/${preview.imageUrl}`
+                                        || `${API_BASE_URL}/images/${preview.imageUrl}`
                                     }
                                     className="
                                         w-full
@@ -691,12 +694,12 @@ function ProductList({ onChange }) {
 
                                     {/* 대표 */}
                                     <img
-                                        src={`http://localhost:8081/images/${preview.imageUrl}`}
+                                        src={`${API_BASE_URL}/images/${preview.imageUrl}`}
                                         onClick={() =>
                                             setPreview({
                                                 ...preview,
                                                 selectedPreviewImage:
-                                                    `http://localhost:8081/images/${preview.imageUrl}`
+                                                    `${API_BASE_URL}/images/${preview.imageUrl}`
                                             })
                                         }
                                         className="
@@ -714,12 +717,12 @@ function ProductList({ onChange }) {
 
                                         <img
                                             key={idx}
-                                            src={`http://localhost:8081/images/${img}`}
+                                            src={`${API_BASE_URL}/images/${img}`}
                                             onClick={() =>
                                                 setPreview({
                                                     ...preview,
                                                     selectedPreviewImage:
-                                                        `http://localhost:8081/images/${img}`
+                                                        `${API_BASE_URL}/images/${img}`
                                                 })
                                             }
                                             className="

@@ -52,6 +52,9 @@ function ProductDetailPage() {
 
     const [reviewPermission, setReviewPermission] = useState(null);
 
+    const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8081";
+
     // 상품 조회
     useEffect(() => {
 
@@ -67,7 +70,7 @@ function ProductDetailPage() {
 
                 // 대표 이미지 기본 선택
                 setSelectedImage(
-                    `http://localhost:8081/images/${data.imageUrl}`
+                    `${API_BASE_URL}/images/${data.imageUrl}`
                 );
 
             } catch (err) {
@@ -460,7 +463,7 @@ function ProductDetailPage() {
                         {/* 기존 단일 이미지 방식 유지 */}
                         {/*
                         <img
-                            src={`http://localhost:8081/images/${product.imageUrl}`}
+                            src={`${API_BASE_URL}/images/${product.imageUrl}`}
                         />
                         */}
 
@@ -469,10 +472,10 @@ function ProductDetailPage() {
 
                             {/* 대표 이미지 */}
                             <img
-                                src={`http://localhost:8081/images/${product.imageUrl}`}
+                                src={`${API_BASE_URL}/images/${product.imageUrl}`}
                                 onClick={() =>
                                     setSelectedImage(
-                                        `http://localhost:8081/images/${product.imageUrl}`
+                                        `${API_BASE_URL}/images/${product.imageUrl}`
                                     )
                                 }
                                 className="
@@ -489,10 +492,10 @@ function ProductDetailPage() {
 
                                 <img
                                     key={idx}
-                                    src={`http://localhost:8081/images/${img}`}
+                                    src={`${API_BASE_URL}/images/${img}`}
                                     onClick={() =>
                                         setSelectedImage(
-                                            `http://localhost:8081/images/${img}`
+                                            `${API_BASE_URL}/images/${img}`
                                         )
                                     }
                                     className="

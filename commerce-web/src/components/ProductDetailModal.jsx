@@ -39,6 +39,9 @@ function ProductDetailModal({ product, onClose }) {
     // 수량 변경 및 재주문 막기
     const isPaymentPending = !!paymentInfo;
 
+    const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8081";
+
     //  수정
     // 결제 진행중이면 수량 변경 금지
     const changeQty = (delta) => {
@@ -279,7 +282,7 @@ function ProductDetailModal({ product, onClose }) {
                 </h2>
 
                 <img
-                    src={`http://localhost:8081/images/${product.imageUrl}`}
+                    src={`${API_BASE_URL}/images/${product.imageUrl}`}
                     className="w-full h-40 object-cover mb-3"
                 />
 

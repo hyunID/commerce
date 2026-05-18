@@ -53,6 +53,9 @@ function MainPage({ user, onLogout, onRequireLogin }) {
         "/banner3.jpg",
     ];
 
+    const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8081";
+
     // 상품 조회
     const fetchProducts = async () => {
 
@@ -724,7 +727,7 @@ function MainPage({ user, onLogout, onRequireLogin }) {
                                     >
 
                                         <img
-                                            src={`http://localhost:8081/images/${currentImage}`}
+                                            src={`${API_BASE_URL}/images/${currentImage}`}
                                             className="
                                                 h-[420px]
                                                 w-full
@@ -923,7 +926,7 @@ function MainPage({ user, onLogout, onRequireLogin }) {
                                 >
 
                                     <img
-                                        src={`http://localhost:8081/images/${currentImage}`}
+                                        src={`${API_BASE_URL}/images/${currentImage}`}
                                         className="
                                             h-[420px]
                                             w-full

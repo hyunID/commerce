@@ -14,6 +14,9 @@ function OrderModal({ onClose }) {
     // productId -> 리뷰 가능 여부
     const [reviewStatusMap, setReviewStatusMap] = useState({});
 
+    const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8081";
+
     // 주문 조회
     const fetchOrders = async () => {
 
@@ -263,7 +266,7 @@ function OrderModal({ onClose }) {
 
                                                 {/* 상품 이미지 */}
                                                 <img
-                                                    src={`http://localhost:8081/images/${item.imageUrl}`}
+                                                    src={`${API_BASE_URL}/images/${item.imageUrl}`}
                                                     alt={item.productName}
                                                     className="
                                                         w-16 h-16
